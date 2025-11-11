@@ -22,13 +22,9 @@ Route::get('/community', function () {
 Route::get('/information', [InformationController::class, 'index'])->name('information');
 
 // --- RUTE LAPORAN BARU (MULTI-STEP) ---
-
 Route::get('/report/step-1', [ReportController::class, 'showStep1'])->name('report.step1.show');
-
 Route::post('/report/step-1', [ReportController::class, 'storeStep1'])->name('report.step1.store');
-
 Route::get('/report/step-2', [ReportController::class, 'showStep2'])->name('report.step2.show');
-
 Route::post('/report/step-2', [ReportController::class, 'storeStep2'])->name('report.step2.store');
 
 Route::get('/report/success', function () {
