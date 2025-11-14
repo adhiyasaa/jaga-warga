@@ -4,34 +4,46 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Report extends Model
 {
     use HasFactory;
 
     /**
-     * The attributes that aren't mass assignable.
-     * Ini mengizinkan semua kolom untuk diisi via Report::create()
-     * @var array
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
      */
-    protected $guarded = [];
+    protected $fillable = [
+        'user_id',
+        'status',
 
-    /**
-     * The attributes that should be cast.
-     * Ini untuk memastikan 'is_anonymous' jadi true/false
-     * dan 'incident_date' menjadi objek tanggal.
-     * @var array
-     */
-    protected $casts = [
-        'is_anonymous' => 'boolean',
-        'incident_date' => 'date',
-        'date_of_birth' => 'date',
+        // Kolom dari Form Langkah 1
+        'first_name',
+        'last_name',
+        'place_of_birth',
+        'date_of_birth',
+        'home_address',
+        'email',
+        'phone_number',
+
+        // Kolom dari Form Langkah 2
+        'incident_type',
+        'incident_date',
+        'incident_time',
+        'incident_location',
+        'description',
+        'evidence_file_path',
+        'is_anonymous',
+        
     ];
 
     /**
-     * Definisikan relasi: Laporan ini dimiliki oleh seorang User.
+     * Relasi ke User model
+     * Sebuah Report dimiliki oleh satu User
      */
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }

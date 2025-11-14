@@ -6,12 +6,13 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Auth; // <-- TAMBAHKAN INI
-use App\Models\Report;                  // <-- TAMBAHKAN INI
+use Illuminate\Support\Facades\Auth;
+use App\Models\Report;
 use App\Mail\ReportSubmitted;
 
 class ReportController extends Controller
 {
+    // ... (fungsi showStep1, storeStep1, showStep2 tidak berubah) ...
     public function showStep1()
     {
         $reportData = Session::get('report_data', []);
@@ -44,6 +45,7 @@ class ReportController extends Controller
         return view('report-step2', compact('reportData'));
     }
 
+
     public function storeStep2(Request $request)
     {
         if (!Session::has('report_data')) {
@@ -60,20 +62,26 @@ class ReportController extends Controller
             'is_anonymous' => 'required|string|in:yes,no',
         ]);
 
-        // 1. (DIUBAH) Simpan file bukti secara permanen
         $evidenceStoragePath = null;
-        if ($request->hasFile('evidence_file')) {
-            // Simpan file di 'storage/app/public/reports'
-            $evidenceStoragePath = $request->file('evidence_file')->store('public/reports');
-        }
-
-        // 2. Gabungkan semua data
         $step1Data = Session::get('report_data');
         $fullReportData = array_merge($step1Data, $validatedData);
 
-        // 3. (BARU) Simpan laporan ke database Supabase
         try {
+            if ($request->hasFile('evidence_file')) {
+                
+                // --- INI PERBAIKANNYA ---
+                // Ubah 'reports' menjadi '/' agar file disimpan di root bucket
+                // (Bucket 'reports' Anda sudah diatur di .env)
+                $evidenceStoragePath = $request->file('evidence_file')->store('/');
+                // --- AKHIR PERBAIKAN ---
+
+                if (!$evidenceStoragePath) {
+                    throw new \Exception('File upload failed silently. Storage::putFile returned null or false.');
+                }
+            }
+
             $newReport = Report::create([
+                //... (data lainnya)
                 'user_id' => Auth::check() ? Auth::id() : null,
                 'first_name' => $fullReportData['first_name'],
                 'last_name' => $fullReportData['last_name'],
@@ -85,33 +93,37 @@ class ReportController extends Controller
                 'incident_type' => $fullReportData['incident_type'],
                 'incident_date' => $fullReportData['incident_date'],
                 'incident_time' => $fullReportData['incident_time'],
-                'incident_location' => $fullReportData['incident_location'],
-                'description' => $fullReportData['description'],
+                'incident_location' => $fullReportData['incident_location'], 
                 'evidence_file_path' => $evidenceStoragePath,
-                'is_anonymous' => ($fullReportData['is_anonymous'] === 'yes'),
+                'is_anonymous' => $fullReportData['is_anonymous'],
+                'description' => $fullReportData['description'],
                 'status' => 'Terkirim',
             ]);
+
         } catch (\Exception $e) {
             if ($evidenceStoragePath) {
                 Storage::delete($evidenceStoragePath);
             }
-            return back()->withInput()->withErrors(['db_error' => 'Gagal menyimpan laporan ke database: ' . $e->getMessage()]);
+            return back()->withInput()->withErrors(['db_error' => 'Gagal terhubung ke storage: ' . $e->getMessage()]);
         }
         
-        // 4. Kirim email notifikasi
         $fullReportData['evidence_file_path'] = $evidenceStoragePath;
         $dummyPoliceEmail = config('mail.mail_report_to_address', 'latunaland@gmail.com');
         
         try {
             Mail::to($dummyPoliceEmail)->send(new ReportSubmitted($fullReportData));
         } catch (\Exception $e) {
-            // Email gagal, tapi data sudah aman di DB.
-            // Bisa dicatat sebagai log error jika perlu.
+            // Email gagal
         }
         
-        // 5. Hapus Session & Selesai
         Session::forget('report_data');
 
         return redirect()->route('report.success');
+    }
+
+    public function listAllReports()
+    {
+        $reports = Report::orderBy('created_at', 'desc')->get();
+        return redirect(route('home'))->with('status', 'Halaman reports index belum dibuat.');
     }
 }
