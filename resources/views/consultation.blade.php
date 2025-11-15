@@ -22,5 +22,6 @@
         <h1 class="text-4xl font-bold">Halaman Konsultasi</h1>
         <p class="mt-4">Ini adalah halaman untuk konsultasi.</p>
     </main>
+    <x-footer/>
 </body>
 </html>

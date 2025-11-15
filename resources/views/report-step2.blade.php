@@ -131,6 +131,7 @@
             </div>
         </div>
     </main>
+    <x-footer/>
 
     {{-- PERBAIKAN BUG: Perbarui Javascript File Upload --}}
     <script>

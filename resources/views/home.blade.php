@@ -26,6 +26,10 @@
         <x-hero />
         <x-what-to-do />
         <x-info :informations="$informations" />
+        <x-consul />
+        <x-why-jaga-warga />
+        <x-emergency />
     </main>
+    <x-footer/>
 </body>
 </html>
