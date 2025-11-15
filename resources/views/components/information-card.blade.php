@@ -5,18 +5,18 @@
     
     <div class="relative rounded-2xl overflow-hidden bg-white">
         <img class="w-full h-48 object-cover" 
-            src="{{ $information->image_path }}" 
+            src="{{ asset('storage/' . $information->image_path) }}" 
             alt="{{ $information->title }}">
         
         <div class="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-black/50 to-transparent"></div>
     </div>
 
     <div class="p-6 text-gray-800">
-        <h3 class="font-bold text-2xl mb-2 text-gray-900">
+        <h3 class="font-bold text-2xl text-gray-900">
             {{ $information->title }}
         </h3>
-        
-        <p class="text-gray-600 text-base mb-4">
+        <h4 class="text-gray-600 mb-2">{{ $information->event }}</h4>
+        <p class="text-gray-800 text-base mb-4">
             {{ $information->description }}
         </p>
 

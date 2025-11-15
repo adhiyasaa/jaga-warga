@@ -22,5 +22,6 @@
         <h1 class="text-4xl font-bold">Halaman Komunitas</h1>
         <p class="mt-4">Ini adalah halaman untuk komunitas.</p>
     </main>
+    <x-footer/>
 </body>
 </html>

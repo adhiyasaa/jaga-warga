@@ -11,6 +11,7 @@ class Information extends Model
 
     protected $fillable = [
         'title',
+        'event',
         'description',
         'url',
         'image_path',

@@ -1,8 +1,10 @@
+@props(['informations'])
+
 <div class="flex justify-end mb-4">
     <button 
         class="bg-blue-600 text-white text-sm px-4 py-2 rounded-md hover:bg-blue-700"
-        onclick="openModal('addRoleModal')">
-        Add Role +
+        onclick="openModal('addInformationModal')">
+        Add Information +
     </button>
 </div>
 
@@ -11,46 +13,54 @@
         <thead class="text-gray-600 font-semibold border-b">
             <tr>
                 <th class="py-3 px-4">ID</th>
-                <th class="py-3 px-4">Name</th>
-                <th class="py-3 px-4">Email</th>
+                <th class="py-3 px-4">Title</th>
+                <th class="py-3 px-4">Event</th>
+                <th class="py-3 px-4">Description</th>
+                <th class="py-3 px-4">URL</th>
+                <th class="py-3 px-4">Image</th>
                 <th class="py-3 px-4">Created Date</th>
-                <th class="py-3 px-4">Role</th>
                 <th class="py-3 px-4">Action</th>
             </tr>
         </thead>
         <tbody class="divide-y">
-            @foreach ($roles as $role)
+            @foreach ($informations as $information)
                 <tr>
-                    <td class="py-3 px-4">{{ $role->id }}</td>
-                    <td class="py-3 px-4">{{ $role->name }}</td>
-                    <td class="py-3 px-4">{{ $role->email }}</td>
-                    <td class="py-3 px-4">{{ $role->created_at->format('d/m/y') }}</td>
+                    <td class="py-3 px-4">{{ $information->id }}</td>
+                    <td class="py-3 px-4">{{ $information->title }}</td>
+                    <td class="py-3 px-4">{{ $information->event }}</td>
+                    <td class="py-3 px-4">{{ Str::limit($information->description, 50) }}</td>
                     <td class="py-3 px-4">
-                        <span class="
-                            px-3 py-1 rounded-md text-xs font-medium
-                            @if($role->role === 'SuperAdmin') bg-blue-100 text-blue-700
-                            @elseif($role->role === 'Psychologist') bg-yellow-100 text-yellow-700
-                            @else bg-gray-100 text-gray-700 @endif">
-                            {{ $role->role }}
-                        </span>
+                        <a href="{{ $information->url }}" target="_blank" class="text-blue-500 hover:underline">
+                            Link
+                        </a>
                     </td>
+                    <td class="py-3 px-4">
+                        <img src="{{ asset('storage/' . $information->image_path) }}" 
+                             alt="Image" 
+                             class="w-16 h-10 object-cover rounded-md">
+                    </td>
+                    <td class="py-3 px-4">{{ $information->created_at->format('d/m/y') }}</td>
                     <td class="py-3 px-4 relative">
                         <button 
                             class="bg-blue-600 text-white text-xs px-3 py-2 rounded-md"
-                            onclick="toggleDropdown(event, 'dropdown-{{ $role->id }}')">
+                            onclick="toggleDropdown(event, 'dropdown-{{ $information->id }}')">
                             Action ▾
                         </button>
-                        <div id="dropdown-{{ $role->id }}" 
+                        <div id="dropdown-{{ $information->id }}" 
                              class="hidden absolute right-0 mt-2 w-36 bg-white border rounded-md shadow-lg z-10">
                             <button 
                                 class="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
-                                onclick="openModal('viewRoleModal-{{ $role->id }}')">View</button>
+                                onclick="openModal('viewInformationModal-{{ $information->id }}')">
+                                View
+                            </button>
                             <button 
                                 class="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
-                                onclick="openModal('editRoleModal-{{ $role->id }}')">Edit</button>
+                                onclick="openModal('editInformationModal-{{ $information->id }}')">
+                                Edit
+                            </button>
                             <button 
                                 class="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
-                                onclick="openModal('deleteRoleModal-{{ $role->id }}')">
+                                onclick="openModal('deleteInformationModal-{{ $information->id }}')">
                                 Delete
                             </button>
                         </div>
@@ -64,10 +74,15 @@
 <script>
     function toggleDropdown(event, id) {
         event.stopPropagation();
-        document.querySelectorAll('[id^="dropdown-"]').forEach(el => el.classList.add('hidden'));
+        // Tutup semua dropdown lain
+        document.querySelectorAll('[id^="dropdown-"]').forEach(el => {
+            if (el.id !== id) el.classList.add('hidden');
+        });
+        // Buka/tutup dropdown yang diklik
         document.getElementById(id).classList.toggle('hidden');
     }
 
+    // Tutup dropdown jika klik di luar
     window.addEventListener('click', () => {
         document.querySelectorAll('[id^="dropdown-"]').forEach(el => el.classList.add('hidden'));
     });
@@ -78,6 +93,7 @@
 
         modal.classList.remove('hidden');
 
+        // Transisi fade-in
         setTimeout(() => {
             modal.classList.remove('opacity-0', 'scale-95');
             modal.classList.add('opacity-100', 'scale-100');
@@ -88,20 +104,28 @@
         const modal = document.getElementById(id);
         if (!modal) return;
 
+        // Transisi fade-out
         modal.classList.remove('opacity-100', 'scale-100');
         modal.classList.add('opacity-0', 'scale-95');
 
+        // Sembunyikan setelah transisi selesai
         setTimeout(() => {
             modal.classList.add('hidden');
         }, 150);
     }
 
+    // Tutup modal jika klik background
     document.addEventListener('click', (e) => {
-        document.querySelectorAll('[id^="addRoleModal"],[id^="editRoleModal-"],[id^="viewRoleModal-"],[id^="deleteRoleModal-"]').forEach(modal => {
+        // ID modal harus sesuai dengan yang kita buat
+        document.querySelectorAll(
+            '[id^="addInformationModal"],' +
+            '[id^="editInformationModal-"],' +
+            '[id^="viewInformationModal-"],' +
+            '[id^="deleteInformationModal-"]'
+        ).forEach(modal => {
             if (!modal.classList.contains('hidden') && e.target === modal) {
                 closeModal(modal.id);
             }
         });
     });
 </script>
-

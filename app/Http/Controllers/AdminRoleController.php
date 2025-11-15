@@ -31,7 +31,7 @@ class AdminRoleController extends Controller
             'role' => $request->role,
         ]);
 
-        return redirect()->route('admin.role.index')->with('success', 'Role created successfully!');
+        return redirect()->route('admin.role')->with('success', 'Role created successfully!');
     }
 
     public function show($id)
@@ -52,7 +52,7 @@ class AdminRoleController extends Controller
 
         $role->update($request->only(['name', 'email', 'role']));
 
-        return redirect()->route('admin.role.index')->with('success', 'Role updated!');
+        return redirect()->route('admin.role')->with('success', 'Role updated!');
     }
 
     public function destroy($id)
@@ -60,6 +60,6 @@ class AdminRoleController extends Controller
         $role = User::findOrFail($id);
         $role->delete();
 
-        return redirect()->route('admin.role.index')->with('success', 'Role deleted!');
+        return redirect()->route('admin.role')->with('success', 'Role deleted!');
     }
 }

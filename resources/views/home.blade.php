@@ -1,6 +1,3 @@
-
-</nav>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -24,10 +21,15 @@
     </script>
 </head>
 <body class="bg-gray-800"> 
-    <x-navbar />
+    <x-navbar/>
     <main>
         <x-hero />
         <x-what-to-do />
+        <x-info :informations="$informations" />
+        <x-consul />
+        <x-why-jaga-warga />
+        <x-emergency />
     </main>
+    <x-footer/>
 </body>
 </html>
