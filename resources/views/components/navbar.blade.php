@@ -7,6 +7,7 @@
                     <img class="h-8 w-auto" src="{{ asset('image/icon.png') }}" alt="Logo">
                 </a>
             </div>
+            <!-- Navbar -->
 
             {{-- Link navigasi utama --}}
             <div class="hidden md:flex md:items-center md:space-x-6">
