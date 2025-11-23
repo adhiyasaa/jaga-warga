@@ -4,7 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\HasMany; // <-- TAMBAHKAN INI
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -21,7 +21,9 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'role', // (Pastikan 'role' ada di sini jika Anda ingin bisa mengisinya)
+        'role',          // Pastikan role ada
+        'gender',        // <-- TAMBAHAN BARU
+        'date_of_birth', // <-- TAMBAHAN BARU
     ];
 
     /**
@@ -47,9 +49,9 @@ class User extends Authenticatable
         ];
     }
 
-    // ===============================================
-    // !! TAMBAHKAN TIGA FUNGSI DI BAWAH INI !!
-    // ===============================================
+    // =================================================================
+    // RELASI UNTUK FITUR COMMUNITY (JANGAN DIHAPUS)
+    // =================================================================
 
     /**
      * User ini punya banyak Post.
