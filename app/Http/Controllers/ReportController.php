@@ -108,7 +108,7 @@ class ReportController extends Controller
         }
         
         $fullReportData['evidence_file_path'] = $evidenceStoragePath;
-        $dummyPoliceEmail = config('mail.mail_report_to_address', 'latunaland@gmail.com');
+        $dummyPoliceEmail = config('mail.mail_report_to_address');
         
         try {
             Mail::to($dummyPoliceEmail)->send(new ReportSubmitted($fullReportData));

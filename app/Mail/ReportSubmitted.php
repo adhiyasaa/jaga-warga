@@ -8,7 +8,7 @@ use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Mail\Mailables\Attachment;
+use Illuminate\Support\Facades\Storage;
 
 class ReportSubmitted extends Mailable
 {
@@ -16,34 +16,41 @@ class ReportSubmitted extends Mailable
 
     public $reportData;
 
-    public function __construct(array $reportData)
+    /**
+     * Create a new message instance.
+     */
+    public function __construct($reportData)
     {
         $this->reportData = $reportData;
     }
 
+    /**
+     * Get the message envelope.
+     */
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Laporan Baru: ' . $this->reportData['incident_type'],
+            subject: '🚨 Laporan Masuk Baru - Jaga Warga',
         );
     }
 
+    /**
+     * Get the message content definition.
+     */
     public function content(): Content
     {
         return new Content(
-            view: 'emails.report-submitted',
+            view: 'emails.report-submitted', // Kita akan buat file view ini di langkah 4
         );
     }
 
+    /**
+     * Get the attachments for the message.
+     *
+     * @return array<int, \Illuminate\Mail\Mailables\Attachment>
+     */
     public function attachments(): array
     {
-        if (isset($this->reportData['evidence_file_path'])) {
-            return [
-                Attachment::fromPath(storage_path('app/' . $this->reportData['evidence_file_path']))
-                    ->as($this->reportData['evidence_file_name'])
-            ];
-        }
-        
         return [];
     }
 }
