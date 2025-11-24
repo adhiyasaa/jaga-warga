@@ -101,20 +101,4 @@ class User extends Authenticatable
     {
         return $this->hasMany(Post::class);
     }
-
-    /**
-     * User ini punya banyak Comment.
-     */
-    public function comments(): HasMany
-    {
-        return $this->hasMany(Comment::class);
-    }
-
-    /**
-     * User ini punya banyak Like.
-     */
-    public function likes(): HasMany
-    {
-        return $this->hasMany(Like::class);
-    }
 }

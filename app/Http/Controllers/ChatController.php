@@ -7,16 +7,49 @@ use App\Models\Message;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log; // Pastikan ini ada
+use Illuminate\Support\Facades\Log;
 
 class ChatController extends Controller
 {
     public function index()
     {
-        $users = User::where('id', '!=', Auth::id())->get();
-        return view('consultation', compact('users'));
+        $currentUser = Auth::user();
+        
+        if ($currentUser->role === 'psychologist') {
+            // === TAMPILAN UNTUK PSIKOLOG ===
+            // Hanya ambil user yang pernah chat (kirim/terima) dengan psikolog ini
+            
+            // 1. Cari semua pesan yang melibatkan psikolog ini
+            $messages = Message::where('sender_id', $currentUser->id)
+                            ->orWhere('receiver_id', $currentUser->id)
+                            ->get();
+
+            // 2. Ambil ID lawan bicaranya (Unik)
+            $clientIds = $messages->map(function ($msg) use ($currentUser) {
+                return $msg->sender_id == $currentUser->id ? $msg->receiver_id : $msg->sender_id;
+            })->unique();
+
+            // 3. Ambil data User berdasarkan ID tersebut
+            $users = User::whereIn('id', $clientIds)->get();
+            
+            $pageTitle = 'Riwayat Chat Pasien';
+            $emptyMessage = 'Belum ada pasien yang menghubungi Anda.';
+
+        } else {
+            // === TAMPILAN UNTUK USER BIASA ===
+            // Tampilkan semua Psikolog yang tersedia
+            $users = User::where('role', 'psychologist')
+                         ->where('id', '!=', $currentUser->id)
+                         ->get();
+            
+            $pageTitle = 'Daftar Psikolog Tersedia';
+            $emptyMessage = 'Belum ada psikolog yang tersedia saat ini.';
+        }
+
+        return view('consultation', compact('users', 'pageTitle', 'emptyMessage'));
     }
 
+    // ... (Method show, store, dll biarkan tetap sama seperti file sebelumnya) ...
     public function show($userId)
     {
         $receiver = User::findOrFail($userId);
@@ -43,26 +76,20 @@ class ChatController extends Controller
             'message' => 'required|string|max:1000',
         ]);
 
-        // 1. Simpan ke Database (Pasti Berhasil)
         $message = Message::create([
             'sender_id' => Auth::id(),
             'receiver_id' => $userId,
             'message' => $request->message,
         ]);
 
-        // 2. Broadcast ke Reverb (Rawan Error, kita bungkus try-catch)
         $broadcastStatus = 'success';
         try {
-            // Kode ini yang memicu error 500 jika Reverb gagal
             broadcast(new MessageSent($message))->toOthers();
-        } catch (\Exception $e) {
-            // JIKA ERROR: Jangan tampilkan error 500 ke user!
-            // Cukup catat di log server, dan biarkan program lanjut jalan.
-            Log::error('Reverb Error: ' . $e->getMessage());
-            $broadcastStatus = 'failed';
+        } catch (\Throwable $e) {
+            Log::error('Broadcast Error: ' . $e->getMessage());
+            $broadcastStatus = 'failed: ' . $e->getMessage();
         }
 
-        // 3. Return Sukses 200 (User tidak akan melihat error merah lagi)
         return response()->json([
             'status' => 'Message Sent!',
             'broadcast_status' => $broadcastStatus,
