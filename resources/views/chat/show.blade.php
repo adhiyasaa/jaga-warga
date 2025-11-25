@@ -10,12 +10,18 @@
     
     <title>Ruang Konsultasi - Jaga Warga</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- ADD AXIOS CDN HERE -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    colors: { 'custom-blue': '#222E85' }
+                    colors: {
+                        'custom-blue': '#222E85'
+                    }
                 }
             }
         }
@@ -34,7 +40,6 @@
 <body class="bg-gray-100 font-sans antialiased">
 
     <!-- WRAPPER UTAMA: TINGGI PAS 1 LAYAR (h-dvh) -->
-    <!-- Ini membungkus Navbar + Chat agar pas satu layar saat pertama dibuka -->
     <div class="h-dvh flex flex-col w-full relative">
         
         <!-- 1. NAVBAR (Sticky Top) -->
@@ -143,7 +148,6 @@
     </div>
 
     <!-- 3. FOOTER (DI LUAR WRAPPER h-dvh) -->
-    <!-- Ini akan berada di "halaman kedua" alias harus discroll untuk dilihat -->
     <div class="bg-gray-800 relative z-40">
         <x-footer/>
     </div>
