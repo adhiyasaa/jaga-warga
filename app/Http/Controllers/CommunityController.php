@@ -18,17 +18,19 @@ class CommunityController extends Controller
 
     public function storePost(Request $request)
     {
-        // Validasi: Konten wajib diisi
+        // Validasi input
         $request->validate([
             'content' => 'required|string|max:2000',
         ]);
 
-        // Simpan post (tanpa gambar/video)
-        $request->user()->posts()->create([
-            'content' => $request->content,
-            'image_path' => null, // Pastikan null
-            'video_path' => null, // Pastikan null
-        ]);
+        // DEBUG: Pastikan kita pakai Model Post, bukan Report
+        // Gunakan cara eksplisit agar tidak salah relasi
+        $post = new Post();
+        $post->user_id = Auth::id();
+        $post->content = $request->content;
+        $post->image_path = null; // Sesuai permintaan (null dulu)
+        $post->video_path = null; // Sesuai permintaan (null dulu)
+        $post->save();
 
         return back()->with('success', 'Post created successfully!');
     }
@@ -62,17 +64,14 @@ class CommunityController extends Controller
     public function destroyPost(Post $post)
     {
         if ($post->user_id !== Auth::id()) abort(403);
-        
-        $post->delete(); // Langsung hapus data
+        $post->delete();
         return back()->with('success', 'Post deleted successfully!');
     }
 
     public function updatePost(Request $request, Post $post)
     {
         if ($post->user_id !== Auth::id()) abort(403);
-
         $request->validate(['content' => 'required|string|max:2000']);
-
         $post->update(['content' => $request->content]);
         return back()->with('success', 'Post updated successfully!');
     }
