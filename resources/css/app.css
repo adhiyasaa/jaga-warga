@@ -4,7 +4,7 @@
 
 @font-face {
   font-family: 'Agrandir';
-  src: url('/fonts/Agrandir-Regular.otf') format('truetype');
+  src: url('/fonts/Agrandir-Regular.otf') format('opentype');
   font-weight: normal;
   font-style: normal;
 }

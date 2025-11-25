@@ -24,23 +24,11 @@
     <x-navbar/>
     
     <main>
-        <!-- Hero Section -->
         <x-hero />
-        
-        <!-- What To Do Section -->
         <x-what-to-do />
-        
-        <!-- Information Section -->
         <x-info :informations="$informations" />
-        
-        <!-- Popular Psychologist (Consul Component) -->
-        <!-- PERBAIKAN DISINI: Kirim variabel $users ke dalam komponen -->
         <x-consul :users="$users" />
-        
-        <!-- Why Jaga Warga Section -->
         <x-why-jaga-warga />
-        
-        <!-- Emergency Section -->
         <x-emergency />
     </main>
 
