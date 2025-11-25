@@ -21,9 +21,9 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'role',          // Pastikan role ada
-        'gender',        // <-- TAMBAHAN BARU
-        'date_of_birth', // <-- TAMBAHAN BARU
+        'role',          
+        'gender',        
+        'date_of_birth', 
     ];
 
     /**
