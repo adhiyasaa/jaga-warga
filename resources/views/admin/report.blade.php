@@ -5,7 +5,16 @@
         </h2>
     </x-slot>
 
-    <div class="py-12" x-data="{ showModal: false, selectedReport: null }">
+    @php
+        // FIX: Definisikan Base URL Supabase di PHP agar bisa diakses Alpine.
+        // Ini akan menghasilkan URL seperti: https://xyz.supabase.co/storage/v1/object/public/reports/
+        // Kita menggunakan Storage::disk('supabase')->url('reports/') untuk memaksa prefix reports/.
+        // Namun, karena Storage::disk('supabase')->url() sudah menggunakan path lengkap dari DB,
+        // kita hanya perlu base URL-nya saja. Mari kita gunakan helper yang paling aman:
+        $supabaseBaseUrl = Storage::disk('supabase')->url(''); // Hasilnya: https://xyz.supabase.co/storage/v1/object/public/bucket_name/
+    @endphp
+
+    <div class="py-12" x-data="{ showModal: false, selectedReport: null, supabaseBaseUrl: '{{ $supabaseBaseUrl }}' }">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             
             {{-- Flash Message Sukses --}}
@@ -62,7 +71,7 @@
                                             </span>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <button @click="showModal = true; selectedReport = {{ $report }}" 
+                                            <button @click="showModal = true; selectedReport = {{ $report->toJson() }}" 
                                                      class="text-indigo-600 hover:text-indigo-900 font-semibold">
                                                 Lihat Detail
                                             </button>
@@ -79,13 +88,10 @@
                         </table>
                     </div>
 
-                    {{-- PERBAIKAN: Hanya tampilkan links() jika $reports adalah objek Paginator --}}
+                    {{-- Pagination Links --}}
                     <div class="mt-4">
                         @if ($reports instanceof \Illuminate\Pagination\LengthAwarePaginator)
                             {{ $reports->links() }}
-                        @else
-                            {{-- Optional: Tampilkan pesan jika ini adalah Collection biasa (misal, jika ini dashboard ringkasan) --}}
-                            {{-- <p class="text-xs text-gray-500">Tampilkan hanya data terbaru.</p> --}}
                         @endif
                     </div>
 
@@ -148,19 +154,21 @@
 
                                     <div>
                                         <p class="font-bold text-gray-800">Deskripsi:</p>
-                                        <p class="bg-gray-50 p-3 rounded border border-gray-200 mt-1" x-text="selectedReport?.description"></p>
+                                        <p class="bg-gray-50 p-3 rounded border border-gray-200 mt-1" x-html="selectedReport?.description.replace(/\n/g, '<br>')"></p>
                                     </div>
 
                                     {{-- Bukti Lampiran --}}
                                     <div x-show="selectedReport?.evidence_file_path">
                                         <p class="font-bold text-gray-800 mb-2">Bukti Lampiran:</p>
                                         
-                                        {{-- Constructing URL safely (assuming Storage::disk('supabase')->url('') returns the base URL) --}}
-                                        <a :href="`{{ Storage::disk('supabase')->url('') }}${selectedReport?.evidence_file_path}`" 
-                                            target="_blank"
-                                            class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700">
-                                            Lihat Bukti (Foto/Video/PDF)
-                                        </a>
+                                        {{-- FIX URL: Menggunakan Base URL Supabase + path DB yang sudah lengkap (reports/namafile.png) --}}
+                                        <template x-data="{ fileUrl: supabaseBaseUrl + selectedReport?.evidence_file_path }">
+                                            <a :href="fileUrl" 
+                                                target="_blank"
+                                                class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700">
+                                                Lihat Bukti (Foto/Video/PDF)
+                                            </a>
+                                        </template>
                                     </div>
                                 </div>
                             </div>

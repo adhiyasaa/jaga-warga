@@ -7,12 +7,15 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log; // Tambahkan Log untuk debugging
+use Illuminate\Support\Facades\Log;
 use App\Models\Report;
 use App\Mail\ReportSubmitted;
+use App\Models\User;
 
 class ReportController extends Controller
 {
+    // ... (showStep1, storeStep1, showStep2 methods remain unchanged) ...
+
     public function showStep1()
     {
         $reportData = Session::get('report_data', []);
@@ -53,7 +56,6 @@ class ReportController extends Controller
         }
 
         // 2. Cek Login (Wajib)
-        // Jika user tidak login, redirect ke login page dengan pesan error
         if (!Auth::check()) {
             return redirect()->route('login')->with('error', 'Sesi login Anda habis. Silakan login kembali untuk menyimpan laporan.');
         }
@@ -79,24 +81,26 @@ class ReportController extends Controller
                 $file = $request->file('evidence_file');
                 $filename = time() . '_' . preg_replace('/\s+/', '_', $file->getClientOriginalName());
                 
-                // Simpan ke disk 'public' di folder 'reports'
-                // Hasilnya: "reports/17325123_namafile.jpg"
-                $evidencePath = $file->storeAs('reports', $filename, 'public'); 
+                // PERBAIKAN: Gunakan putFileAs ke subfolder 'reports'. 
+                // Catatan: Pastikan disk 'supabase' Anda di filesystems.php menunjuk ke root bucket.
+                $evidencePath = Storage::disk('supabase')->putFileAs('/', $file, $filename); 
+
+                if (!$evidencePath) {
+                    throw new \Exception('File upload failed or returned empty path.');
+                }
+                // $evidencePath sekarang berisi: 'reports/namafile.jpg'
+                
             } catch (\Exception $e) {
-                Log::error("File Upload Error: " . $e->getMessage());
-                return back()->withInput()->withErrors(['evidence_file' => 'Gagal mengupload file. Silakan coba lagi.']);
+                Log::error("File Upload Error (Supabase): " . $e->getMessage());
+                return back()->withInput()->withErrors(['evidence_file' => 'Gagal mengupload file. Pastikan konfigurasi Supabase dan koneksi internet Anda benar.']);
             }
         }
 
         // PROSES SIMPAN DATABASE
         try {
-            // Gabungkan data secara manual agar lebih aman dan terkontrol
             $report = Report::create([
-                // Identitas User (Wajib)
                 'user_id' => Auth::id(), 
                 'status' => 'Terkirim',
-
-                // Data Step 1 (Dari Session)
                 'first_name' => $step1Data['first_name'],
                 'last_name' => $step1Data['last_name'],
                 'place_of_birth' => $step1Data['place_of_birth'],
@@ -104,36 +108,32 @@ class ReportController extends Controller
                 'home_address' => $step1Data['home_address'],
                 'email' => $step1Data['email'],
                 'phone_number' => $step1Data['phone_number'],
-
-                // Data Step 2 (Langsung dari Request Input)
                 'incident_type' => $request->input('incident_type'),
                 'incident_date' => $request->input('incident_date'),
                 'incident_time' => $request->input('incident_time'),
                 'incident_location' => $request->input('incident_location'),
-                'description' => $request->input('description'), // Ambil deskripsi langsung
+                'description' => $request->input('description'), 
                 'is_anonymous' => $request->input('is_anonymous'),
                 
-                // Path File
-                'evidence_file_path' => $evidencePath, // Gunakan path yang baru diupload
+                // Path File: Menyimpan path lengkap 'reports/namafile.jpg'
+                'evidence_file_path' => $evidencePath, 
             ]);
 
-            Log::info("Laporan baru berhasil dibuat ID: " . $report->id . " oleh User ID: " . Auth::id());
+            Log::info("Laporan baru berhasil dibuat ID: " . $report->id);
 
         } catch (\Exception $e) {
-            // Jika gagal simpan DB, hapus file yang terlanjur diupload
+            // Jika gagal simpan DB, hapus file
             if ($evidencePath) {
-                Storage::disk('public')->delete($evidencePath);
+                Storage::disk('supabase')->delete($evidencePath); 
             }
             Log::error("Database Save Error: " . $e->getMessage());
-            return back()->withInput()->withErrors(['db_error' => 'Terjadi kesalahan saat menyimpan data: ' . $e->getMessage()]);
+            return back()->withInput()->withErrors(['db_error' => 'Terjadi kesalahan saat menyimpan data ke database.']);
         }
 
-        // EMAIL NOTIFIKASI (Opsional)
-        // Kita bungkus try-catch agar error email tidak membatalkan laporan sukses
+        // ... (Logika Email & Session tetap sama) ...
         try {
             $dummyPoliceEmail = config('mail.mail_report_to_address');
             if ($dummyPoliceEmail) {
-                // Siapkan data array untuk email view
                 $emailData = array_merge($step1Data, $request->all(), ['evidence_file_path' => $evidencePath]);
                 Mail::to($dummyPoliceEmail)->send(new ReportSubmitted($emailData));
             }
@@ -141,9 +141,7 @@ class ReportController extends Controller
             Log::error("Email Sending Error: " . $e->getMessage());
         }
 
-        // Hapus session
         Session::forget('report_data');
-
         return redirect()->route('report.success');
     }
 
