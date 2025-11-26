@@ -72,17 +72,14 @@
                             </div>
 
                             <div class="mt-4">
-                                {{-- PERBAIKAN BUG: Ubah label 'for' --}}
                                 <label for="evidence_file" class="block text-sm font-medium text-gray-700 mb-1">
                                     Upload Evidence (Optional)
                                 </label>
                                 <div id="drop-area" class="flex flex-col items-center justify-center w-full h-28 border-2 border-blue-300 border-dashed rounded-lg cursor-pointer bg-white hover:bg-gray-50 transition-colors duration-200">
-                                    {{-- PERBAIKAN BUG: Tambah 'name' dan ubah 'id' --}}
                                     <input id="evidence_file" name="evidence_file" type="file" class="hidden" accept="image/*,video/*,application/pdf" />
                                     <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
                                     </svg>
-                                    {{-- Tambah id="drop-text" agar mudah diubah JS --}}
                                     <p id="drop-text" class="mt-2 text-sm text-gray-500">
                                         Drop here to attach or <span class="text-blue-600 hover:underline">upload</span>
                                     </p>
@@ -116,7 +113,6 @@
                             </div>
 
                             <div class="flex items-center justify-between mt-6">
-                                {{-- PERBAIKAN BUG: Arahkan 'Back' ke Step 1 --}}
                                 <a href="{{ route('report.step1.show') }}" class="px-4 py-2 bg-gray-400 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-500">
                                     Back
                                 </a>
@@ -133,18 +129,15 @@
     </main>
     <x-footer/>
 
-    {{-- PERBAIKAN BUG: Perbarui Javascript File Upload --}}
     <script>
         const dropArea = document.getElementById('drop-area');
-        const fileInput = document.getElementById('evidence_file'); // Sesuaikan ID
+        const fileInput = document.getElementById('evidence_file');
         const dropText = document.getElementById('drop-text');
 
-        // Klik area drop-zone memicu input file
         dropArea.addEventListener('click', () => {
             fileInput.click();
         });
 
-        // Tampilkan feedback visual saat file dipilih (via klik)
         fileInput.addEventListener('change', () => {
             if (fileInput.files.length > 0) {
                 dropText.textContent = `Selected ${fileInput.files.length} file(s)!`;
@@ -153,7 +146,6 @@
             }
         });
 
-        // Event Drag & Drop
         dropArea.addEventListener('dragover', (e) => {
             e.preventDefault();
             dropArea.classList.add('bg-gray-100'); 
@@ -168,8 +160,8 @@
             dropArea.classList.remove('bg-gray-100');
             const files = e.dataTransfer.files;
             if (files.length > 0) {
-                fileInput.files = files; // Masukkan file ke input
-                dropText.textContent = `Dropped ${files.length} file(s)!`; // Beri feedback
+                fileInput.files = files; 
+                dropText.textContent = `Dropped ${files.length} file(s)!`; 
             }
         });
     </script>

@@ -10,7 +10,7 @@ use App\Http\Controllers\InformationController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CommunityController;
-use App\Http\Controllers\ChatController; // Ensure ChatController is imported
+use App\Http\Controllers\ChatController;
 use App\Models\Information;
 use App\Models\Message;
 use App\Models\User;
@@ -69,18 +69,14 @@ Route::delete(
 // =============================
 // CONSULTATION & CHAT
 // =============================
-// Updated to use ChatController@index for cleaner logic
 Route::get('/consultation', function () {
     if (!auth()->check() || !in_array(auth()->user()->role, ['User', 'Psychologist'])) abort(403);
     return app(ChatController::class)->index();
 })->name('consultation');
 
-// CHAT ROUTES (Authenticated Users)
 Route::middleware(['auth'])->group(function () {
-    // Show chat page with specific user
     Route::get('/chat/{userId}', [ChatController::class, 'show'])->name('chat.show');
 
-    // Store (send) message - THIS WAS MISSING AND CAUSED THE 405 ERROR
     Route::post('/chat/{userId}', [ChatController::class, 'store'])->name('chat.store');
 });
 
@@ -89,15 +85,12 @@ Route::middleware(['auth'])->group(function () {
 // =============================
 Route::middleware(['auth', CheckRole::class . ':User,Psychologist'])->group(function () {
 
-    // Main Page
     Route::get('/community', [CommunityController::class, 'index'])->name('community');
 
-    // Post Actions
     Route::post('/community/post', [CommunityController::class, 'storePost'])->name('community.post.store');
     Route::delete('/community/post/{post}', [CommunityController::class, 'destroyPost'])->name('community.post.destroy');
     Route::put('/community/post/{post}', [CommunityController::class, 'updatePost'])->name('community.post.update');
 
-    // Interactions
     Route::post('/community/post/{post}/comment', [CommunityController::class, 'storeComment'])->name('community.comment.store');
     Route::post('/community/post/{post}/like', [CommunityController::class, 'toggleLike'])->name('community.like');
 });
@@ -156,12 +149,10 @@ Route::prefix('admin')
     ->middleware(['auth', CheckRole::class . ':SuperAdmin'])
     ->group(function () {
 
-        // Redirect /admin ke dashboard
         Route::get('/', function () {
             return redirect()->route('admin.dashboard');
         });
 
-        // DASHBOARD
         Route::get('/dashboard', [AdminController::class, 'dashboard'])
             ->name('dashboard');
 

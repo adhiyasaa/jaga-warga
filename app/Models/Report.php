@@ -31,10 +31,10 @@ class Report extends Model
         // Data from Step 2
         'incident_type',
         'incident_date',
-        'incident_time',      // Must exist here to be saved
-        'incident_location',  // Must exist here to be saved
-        'description',        // Must exist here to be saved
-        'evidence_file_path', // Must exist here to be saved
+        'incident_time',
+        'incident_location',
+        'description',
+        'evidence_file_path',
         'is_anonymous',
     ];
 

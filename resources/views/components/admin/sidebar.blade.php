@@ -21,7 +21,7 @@
                         <span class="ml-2">🧑‍💼 Role</span>
                     </a>
                 </li>
-                <li>
+                <!-- <li>
                     <a href="{{ route('admin.report') }}"
                         class="flex items-center px-4 py-2 rounded-md 
                         {{ request()->routeIs('admin.report') ? 'bg-gray-100 text-gray-900' : 'hover:bg-gray-100 text-gray-600' }}">
@@ -34,7 +34,7 @@
                         {{ request()->routeIs('admin.consultation') ? 'bg-gray-100 text-gray-900' : 'hover:bg-gray-100 text-gray-600' }}">
                         <span class="ml-2">💬 Consultation</span>
                     </a>
-                </li>
+                </li> -->
                 <li>
                     <a href="{{ route('admin.information') }}"
                         class="flex items-center px-4 py-2 rounded-md 
