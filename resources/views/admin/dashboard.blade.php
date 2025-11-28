@@ -27,8 +27,8 @@
 
             {{-- Tables --}}
             <div class="grid grid-cols-2 gap-8">
-                <x-admin.report-table :reports="$reports" />
-                <x-admin.consultation-table :consultations="$consultations" />
+                <div :reports="$reports"> </div>
+                <div :consultations="$consultations"> </div>
             </div>
         </main>
     </div>

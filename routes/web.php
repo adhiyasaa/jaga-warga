@@ -5,6 +5,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdminRoleController;
+use App\Http\Controllers\AdminReportController;
 use App\Http\Controllers\AdminInformationController;
 use App\Http\Controllers\InformationController;
 use App\Http\Controllers\ReportController;
@@ -177,14 +178,20 @@ Route::prefix('admin')
         // =============================
         // REPORT PAGE
         // =============================
-        Route::get('/report', [AdminController::class, 'report'])
+        Route::get('/report', [AdminReportController::class, 'index'])
             ->name('report');
+
+        Route::patch('/reports/{report}/solve', [AdminReportController::class, 'solve'])
+            ->name('report.solve');
+
+        Route::delete('/reports/{report}', [AdminReportController::class, 'destroy'])
+            ->name('report.destroy');
 
         // =============================
         // CONSULTATION PAGE
         // =============================
-        Route::get('/consultation', [AdminController::class, 'consultation'])
-            ->name('consultation');
+        // Route::get('/consultation', [AdminController::class, 'consultation'])
+        //     ->name('consultation');
 
         // =============================
         // INFORMATION CRUD
