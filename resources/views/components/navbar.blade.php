@@ -14,9 +14,23 @@
           'community' => 'Community',
           'information' => 'Information'
         ] as $route => $label)
+<<<<<<< HEAD
           <a href="{{ route($route) }}" class="px-3 py-2 rounded-md text-md hover:bg-white hover:bg-opacity-10">
             {{ $label }}
           </a>
+=======
+          @php
+           $isPsychologist = Auth::check() && Auth::user()->role === 'Psychologist';
+            if ($route === 'report.step1.show' && $isPsychologist) {
+                continue;
+            }
+
+            if ($route === 'consultation' && $isPsychologist) {
+                $label = 'Client Chat'; // Bisa diganti 'Client List' atau 'Consultation Client'
+            }
+          @endphp
+          <a href="{{ route($route) }}" class="px-3 py-2 rounded-md text-md hover:bg-white hover:bg-opacity-10">{{ $label }}</a>
+>>>>>>> 38ffdc1 (Repair: consultation environtment)
         @endforeach
       </div>
 
@@ -76,10 +90,24 @@
         'community' => 'Community',
         'information' => 'Information'
       ] as $route => $label)
+<<<<<<< HEAD
         <a href="{{ route($route) }}"
            class="block px-3 py-2 rounded-md text-base hover:bg-white hover:bg-opacity-10">
           {{ $label }}
         </a>
+=======
+        @php
+            $isPsychologist = Auth::check() && Auth::user()->role === 'Psychologist';
+            if ($route === 'report.step1.show' && $isPsychologist) {
+                continue;
+            }
+            
+            if ($route === 'consultation' && $isPsychologist) {
+                $label = 'Client Chat'; // Bisa diganti 'Client List' atau 'Consultation Client'
+            }
+        @endphp
+        <a href="{{ route($route) }}" class="block px-3 py-2 rounded-md text-base hover:bg-white hover:bg-opacity-10">{{ $label }}</a>
+>>>>>>> 38ffdc1 (Repair: consultation environtment)
       @endforeach
     </div>
 

@@ -25,11 +25,40 @@ Route::get('/consultation', function () {
     return view('consultation');
 })->name('consultation');
 
+<<<<<<< HEAD
 Route::get('/community', function () {
     $user = auth()->user();
     if (!$user || !in_array($user->role, ['User','Psychologist'])) abort(403);
     return view('community');
 })->name('community');
+=======
+Route::get('/consultation/rule/{id}', function ($id) {
+    if (!auth()->check() || auth()->user()->role !== 'User') {abort(403);}
+    return view('consultation-rule', ['userId' => $id]);
+})->name('consultation.rule');
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/consultation/chat/{userId}', [ChatController::class, 'show'])->name('chat.show');
+
+    Route::post('/consultation/chat/{userId}', [ChatController::class, 'store'])->name('chat.store');
+});
+
+// =============================
+// COMMUNITY
+// =============================
+Route::middleware(['auth', CheckRole::class . ':User,Psychologist'])->group(function () {
+
+    Route::get('/community', [CommunityController::class, 'index'])->name('community');
+
+    Route::post('/community/post', [CommunityController::class, 'storePost'])->name('community.post.store');
+    Route::delete('/community/post/{post}', [CommunityController::class, 'destroyPost'])->name('community.post.destroy');
+    Route::put('/community/post/{post}', [CommunityController::class, 'updatePost'])->name('community.post.update');
+
+    Route::post('/community/post/{post}/comment', [CommunityController::class, 'storeComment'])->name('community.comment.store');
+    Route::post('/community/post/{post}/like', [CommunityController::class, 'toggleLike'])->name('community.like');
+});
+
+>>>>>>> 38ffdc1 (Repair: consultation environtment)
 
 Route::get('/information', [InformationController::class, 'index'])->name('information');
 
