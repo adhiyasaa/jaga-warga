@@ -17,12 +17,13 @@
           'information' => 'Information'
         ] as $route => $label)
           @php
-            // Cek apakah user login dan rolenya Psychologist
-            $isPsychologist = Auth::check() && Auth::user()->role === 'Psychologist';
-            
-            // Jika route adalah 'Make a Report' DAN user adalah Psychologist, skip (jangan tampilkan)
+           $isPsychologist = Auth::check() && Auth::user()->role === 'Psychologist';
             if ($route === 'report.step1.show' && $isPsychologist) {
                 continue;
+            }
+
+            if ($route === 'consultation' && $isPsychologist) {
+                $label = 'Client Chat'; // Bisa diganti 'Client List' atau 'Consultation Client'
             }
           @endphp
           <a href="{{ route($route) }}" class="px-3 py-2 rounded-md text-md hover:bg-white hover:bg-opacity-10">{{ $label }}</a>
@@ -81,10 +82,13 @@
         'information' => 'Information'
       ] as $route => $label)
         @php
-            // Logika yang sama untuk Mobile Menu
             $isPsychologist = Auth::check() && Auth::user()->role === 'Psychologist';
             if ($route === 'report.step1.show' && $isPsychologist) {
                 continue;
+            }
+            
+            if ($route === 'consultation' && $isPsychologist) {
+                $label = 'Client Chat'; // Bisa diganti 'Client List' atau 'Consultation Client'
             }
         @endphp
         <a href="{{ route($route) }}" class="block px-3 py-2 rounded-md text-base hover:bg-white hover:bg-opacity-10">{{ $label }}</a>

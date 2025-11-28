@@ -1,20 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <!-- CSRF TOKEN -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    
     <title>Ruang Konsultasi - Jaga Warga</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- 1. AXIOS CDN (FIX DEPLOYMENT VERCEL) -->
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    
-    <!-- 2. KONFIGURASI AXIOS -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
@@ -24,15 +16,10 @@
             }
         });
     </script>
-
-    <!-- 3. ALPINE JS -->
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-    
     <script>
         tailwind.config = {
-            theme: {
-                extend: { colors: { 'custom-blue': '#222E85' } }
-            }
+            theme: { extend: { colors: { 'custom-blue': '#222E85' } } }
         }
     </script>
     @vite(['resources/js/app.js'])
@@ -44,39 +31,24 @@
     </style>
 </head>
 
-<!-- BODY TIDAK overflow-hidden AGAR BISA SCROLL KE FOOTER -->
 <body class="bg-gray-100 font-sans antialiased">
-
-    <!-- WRAPPER UTAMA: TINGGI PAS 1 LAYAR (h-dvh) -->
-    <!-- Ini membungkus Navbar + Chat agar pas satu layar saat pertama dibuka -->
     <div class="h-dvh flex flex-col w-full relative">
-        
-        <!-- 1. NAVBAR (Sticky Top) -->
         <div class="flex-none z-50 bg-white shadow-sm">
             <x-navbar />
         </div>
 
-        <!-- 2. MAIN CHAT AREA (Mengisi sisa layar Wrapper) -->
         <main class="flex-1 flex flex-col min-h-0 relative bg-gray-50">
-            
-            <!-- Container Chat -->
             <div class="w-full max-w-7xl mx-auto h-full flex flex-col px-0 sm:px-4 lg:px-6 py-2 sm:py-3">
-                
-                <!-- Header Navigasi Kecil -->
                 <div class="flex-none mb-2 px-4 sm:px-0 flex items-center justify-between">
-                    <h2 class="font-semibold text-lg text-gray-800 leading-tight hidden sm:block">
-                        {{ __('Ruang Konsultasi') }}
-                    </h2>
+                    <h2 class="font-semibold text-lg text-gray-800 leading-tight hidden sm:block">{{ __('Ruang Konsultasi') }}</h2>
                     <a href="{{ route('consultation') }}" class="text-sm text-custom-blue hover:text-blue-900 flex items-center gap-1 font-medium py-1 px-2 rounded hover:bg-blue-50 transition">
                         &larr; <span class="hidden sm:inline">Kembali ke Daftar</span><span class="sm:hidden">Kembali</span>
                     </a>
                 </div>
 
-                <!-- KARTU CHAT (Full Height Parent) -->
                 <div class="flex-1 bg-white shadow-xl sm:rounded-2xl overflow-hidden border border-gray-200 flex flex-col relative min-h-0"
                      x-data="chatApp({{ auth()->id() }}, {{ $receiver->id }}, {{ Js::from($messages) }})">
-                    
-                    <!-- A. Chat Header -->
+
                     <div class="flex-none px-4 py-3 border-b border-gray-100 bg-white flex justify-between items-center shadow-sm z-20">
                         <div class="flex items-center gap-3">
                             <div class="relative">
@@ -95,11 +67,7 @@
                         </div>
                     </div>
 
-                    <!-- B. Messages Area (Scrollable Internal) -->
-                    <div id="chat-container" 
-                         class="flex-1 overflow-y-auto p-4 space-y-4 bg-[#F0F2F5] w-full custom-scroll" 
-                         x-ref="chatContainer">
-                        
+                    <div id="chat-container" class="flex-1 overflow-y-auto p-4 space-y-4 bg-[#F0F2F5] w-full custom-scroll" x-ref="chatContainer">
                         <div class="flex justify-center my-4 opacity-70">
                             <span class="text-xs text-gray-500 bg-white border border-gray-200 px-3 py-1 rounded-full shadow-sm">
                                 🔒 Percakapan aman & terenkripsi.
@@ -107,17 +75,13 @@
                         </div>
 
                         <template x-for="msg in messages" :key="msg.id">
-                            <div class="flex w-full" 
-                                 :class="msg.sender_id === currentUserId ? 'justify-end' : 'justify-start'">
-                                
+                            <div class="flex w-full" :class="msg.sender_id === currentUserId ? 'justify-end' : 'justify-start'">
                                 <div class="flex max-w-[85%] sm:max-w-[70%] gap-2"
                                      :class="msg.sender_id === currentUserId ? 'flex-row-reverse' : 'flex-row'">
-                                    
                                     <div class="relative px-3 py-2 rounded-2xl shadow-sm text-sm leading-relaxed break-words"
                                          :class="msg.sender_id === currentUserId 
                                             ? 'bg-custom-blue text-white rounded-tr-none' 
                                             : 'bg-white text-gray-800 rounded-tl-none border border-gray-100'">
-                                        
                                         <p x-text="msg.message" class="whitespace-pre-wrap"></p>
                                         <div class="text-[10px] mt-1 text-right opacity-80"
                                              :class="msg.sender_id === currentUserId ? 'text-blue-100' : 'text-gray-400'">
@@ -127,13 +91,12 @@
                                 </div>
                             </div>
                         </template>
-                        
+
                         <div x-show="isSending" class="flex justify-end">
                             <div class="bg-blue-50 text-custom-blue text-[10px] px-3 py-1 rounded-full animate-pulse">Mengirim...</div>
                         </div>
                     </div>
 
-                    <!-- C. Input Area (Selalu di bawah Wrapper) -->
                     <div class="flex-none p-3 bg-white border-t border-gray-200 z-20">
                         <form @submit.prevent="sendMessage" class="flex items-end gap-2 bg-gray-50 p-2 rounded-3xl border border-gray-300 focus-within:border-custom-blue focus-within:ring-1 focus-within:ring-custom-blue transition-all shadow-sm">
                             <textarea 
@@ -151,13 +114,12 @@
                             </button>
                         </form>
                     </div>
+
                 </div>
             </div>
         </main>
     </div>
 
-    <!-- 3. FOOTER (DI LUAR WRAPPER h-dvh) -->
-    <!-- Ini akan berada di "halaman kedua" alias harus discroll untuk dilihat -->
     <div class="bg-gray-800 relative z-40">
         <x-footer/>
     </div>
@@ -172,7 +134,6 @@
                 isSending: false,
 
                 init() {
-                    // Scroll Instan ke bawah
                     this.$nextTick(() => this.scrollToBottom(true));
                     setTimeout(() => this.scrollToBottom(true), 100);
 
@@ -198,7 +159,6 @@
                     const messageToSend = this.newMessage; 
                     this.newMessage = ''; 
 
-                    // CEK AXIOS CDN
                     if (typeof window.axios === 'undefined') {
                         alert('Error: Library Axios tidak termuat. Silakan refresh halaman.');
                         this.isSending = false;
@@ -217,7 +177,6 @@
                         this.$nextTick(() => this.scrollToBottom(false));
                     })
                     .catch(error => {
-                        console.error(error);
                         this.newMessage = messageToSend;
                         alert('Gagal mengirim pesan. Cek koneksi internet.');
                     })

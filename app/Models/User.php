@@ -24,7 +24,10 @@ class User extends Authenticatable
         'role',
         'gender',
         'date_of_birth',
-        'phone_number', // Ensure this is here if you use it
+        'phone_number',
+        'is_available',
+        'avatar_url',  
+        'experience',  
     ];
 
     /**
@@ -47,6 +50,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_available' => 'boolean', // Casting agar otomatis jadi true/false
         ];
     }
 
@@ -54,32 +58,23 @@ class User extends Authenticatable
     // RELATIONS FOR COMMUNITY FEATURE
     // =================================================================
 
-    /**
-     * User has many Posts (Community).
-     */
     public function posts(): HasMany
     {
-        return $this->hasMany(Post::class); // CORRECTED: Points to Post model
+        return $this->hasMany(Post::class);
     }
 
-    /**
-     * User has many Comments.
-     */
     public function comments(): HasMany
     {
         return $this->hasMany(Comment::class);
     }
 
-    /**
-     * User has many Likes.
-     */
     public function likes(): HasMany
     {
         return $this->hasMany(Like::class);
     }
 
     // ===============================================
-    // RELATIONS FOR CHAT
+    // RELATIONS FOR CHAT & CONSULTATION (UPDATED)
     // ===============================================
 
     public function sentMessages(): HasMany
@@ -92,16 +87,30 @@ class User extends Authenticatable
         return $this->hasMany(Message::class, 'receiver_id');
     }
 
+    /**
+     * Relasi Konsultasi sebagai PASIEN.
+     * Mengambil daftar konsultasi milik user ini.
+     */
+    public function consultations(): HasMany
+    {
+        return $this->hasMany(Consultation::class, 'user_id');
+    }
+
+    /**
+     * Relasi Konsultasi sebagai PSIKOLOG.
+     * Mengambil daftar pasien yang ditangani psikolog ini.
+     */
+    public function doctorConsultations(): HasMany
+    {
+        return $this->hasMany(Consultation::class, 'psychologist_id');
+    }
+
     // ===============================================
-    // RELATION FOR REPORTS (CRITICAL FIX)
+    // RELATION FOR REPORTS
     // ===============================================
     
-    /**
-     * User has many Reports (History).
-     * This must point to the Report model, NOT Post.
-     */
     public function reports(): HasMany
     {
-        return $this->hasMany(Report::class); // CORRECTED: Points to Report model
+        return $this->hasMany(Report::class);
     }
 }

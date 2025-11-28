@@ -75,10 +75,15 @@ Route::get('/consultation', function () {
     return app(ChatController::class)->index();
 })->name('consultation');
 
-Route::middleware(['auth'])->group(function () {
-    Route::get('/chat/{userId}', [ChatController::class, 'show'])->name('chat.show');
+Route::get('/consultation/rule/{id}', function ($id) {
+    if (!auth()->check() || auth()->user()->role !== 'User') {abort(403);}
+    return view('consultation-rule', ['userId' => $id]);
+})->name('consultation.rule');
 
-    Route::post('/chat/{userId}', [ChatController::class, 'store'])->name('chat.store');
+Route::middleware(['auth'])->group(function () {
+    Route::get('/consultation/chat/{userId}', [ChatController::class, 'show'])->name('chat.show');
+
+    Route::post('/consultation/chat/{userId}', [ChatController::class, 'store'])->name('chat.store');
 });
 
 // =============================

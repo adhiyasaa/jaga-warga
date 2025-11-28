@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Events\MessageSent;
+use App\Models\Consultation; 
 use App\Models\Message;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -16,24 +17,47 @@ class ChatController extends Controller
         $currentUser = Auth::user();
 
         if ($currentUser->role === 'Psychologist') {
-            // === PSYCHOLOGIST VIEW ===
-            $messages = Message::where('sender_id', $currentUser->id)
-                ->orWhere('receiver_id', $currentUser->id)
+            // ==========================================
+            // VIEW UNTUK PSIKOLOG (Melihat Daftar Pasien)
+            // ==========================================
+            
+            // Ambil daftar konsultasi milik psikolog ini
+            // Urutkan dari yang update terakhir (chat terbaru)
+            $consultations = Consultation::where('psychologist_id', $currentUser->id)
+                ->with('user')
+                ->orderBy('updated_at', 'desc')
                 ->get();
 
-            $clientIds = $messages->map(function ($msg) use ($currentUser) {
-                return $msg->sender_id == $currentUser->id ? $msg->receiver_id : $msg->sender_id;
-            })->unique();
-
-            $users = User::whereIn('id', $clientIds)->get();
+            $users = $consultations->map(function ($consultation) {
+                $patient = $consultation->user;
+                $patient->consultation_status = $consultation->status; 
+                $patient->consultation_id = $consultation->id; 
+                
+                return $patient;
+            });
 
             $pageTitle = 'Riwayat Chat Pasien';
             $emptyMessage = 'Belum ada pasien yang menghubungi Anda.';
+
         } else {
-            // === REGULAR USER VIEW ===
+            // ==========================================
+            // VIEW UNTUK USER BIASA (Melihat Daftar Psikolog)
+            // ==========================================
+            
             $users = User::where('role', 'Psychologist')
                 ->where('id', '!=', $currentUser->id)
                 ->get();
+
+            $users->map(function ($psychologist) use ($currentUser) {
+                $myConsultation = Consultation::where('user_id', $currentUser->id)
+                    ->where('psychologist_id', $psychologist->id)
+                    ->latest() 
+                    ->first();
+
+                $psychologist->consultation_status = $myConsultation ? $myConsultation->status : 'none';
+
+                return $psychologist;
+            });
 
             $pageTitle = 'Daftar Psikolog Tersedia';
             $emptyMessage = 'Belum ada psikolog yang tersedia saat ini.';
@@ -68,11 +92,41 @@ class ChatController extends Controller
             'message' => 'required|string|max:1000',
         ]);
 
+        $sender = Auth::user();
+
+        if ($sender->role === 'User') {
+            
+            $activeSession = Consultation::where('user_id', $sender->id)
+                ->where('psychologist_id', $userId)
+                ->whereIn('status', ['pending', 'active'])
+                ->exists();
+
+            if (!$activeSession) {
+                Consultation::create([
+                    'user_id' => $sender->id,
+                    'psychologist_id' => $userId,
+                    'status' => 'pending'
+                ]);
+            }
+        }
+        
         $message = Message::create([
-            'sender_id' => Auth::id(),
+            'sender_id' => $sender->id,
             'receiver_id' => $userId,
             'message' => $request->message,
         ]);
+
+        if ($sender->role === 'User' || $sender->role === 'Psychologist') {
+             $consultation = Consultation::where(function($q) use ($sender, $userId) {
+                 $q->where('user_id', $sender->id)->where('psychologist_id', $userId);
+             })->orWhere(function($q) use ($sender, $userId) {
+                 $q->where('user_id', $userId)->where('psychologist_id', $sender->id);
+             })->latest()->first();
+
+             if ($consultation) {
+                 $consultation->touch(); 
+             }
+        }
 
         $broadcastStatus = 'success';
         try {
