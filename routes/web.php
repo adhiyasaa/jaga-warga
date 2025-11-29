@@ -7,6 +7,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdminRoleController;
 use App\Http\Controllers\AdminReportController;
 use App\Http\Controllers\AdminInformationController;
+use App\Http\Controllers\AdminConsultationController;
 use App\Http\Controllers\InformationController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ProfileController;
@@ -201,9 +202,10 @@ Route::prefix('admin')
         // =============================
         // CONSULTATION PAGE
         // =============================
-        // Route::get('/consultation', [AdminController::class, 'consultation'])
-        //     ->name('consultation');
+        Route::get('/consultation', [AdminConsultationController::class, 'index'])->name('consultation');
 
+        Route::delete('/consultation/{consultation}', [AdminConsultationController::class, 'destroy'])->name('consultation.destroy');
+        
         // =============================
         // INFORMATION CRUD
         // =============================
