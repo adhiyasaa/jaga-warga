@@ -47,11 +47,15 @@
                     Saya sudah membaca dan menyetujui aturan di atas.
                 </label>
             </div>
-            <button id="continueBtn"
-                disabled
-                class="w-full bg-gray-300 text-gray-600 font-semibold py-3 rounded-xl mt-2 cursor-not-allowed transition-all">
-                Mulai Konsultasi
-            </button>
+            <form action="{{ route('chat.start', $userId) }}" method="POST">
+                @csrf
+                <button id="continueBtn"
+                    type="submit"
+                    disabled
+                    class="w-full bg-gray-300 text-gray-600 font-semibold py-3 rounded-xl mt-2 cursor-not-allowed transition-all">
+                    Mulai Konsultasi
+                </button>
+            </form>
         </div>
         <a href="{{ route('consultation') }}" class="text-sm text-custom-blue hover:text-blue-900 flex items-center gap-1 font-medium py-1 px-2 mt-4 rounded hover:bg-blue-50 transition">
             &larr; <span class="hidden sm:inline">Kembali ke Daftar</span><span class="sm:hidden">Kembali</span>

@@ -2,15 +2,14 @@
 
 @php
     $statusText = '';
-    $statusColor = 'hidden'; // Default sembunyi
+    $statusColor = 'hidden'; 
+    $consultationStatus = 'none';
 
     $viewer = Auth::user();
     $viewerRole = $viewer ? $viewer->role : 'User';
 
     if ($user && $user->role === 'Psychologist') {
-
         $isAvailable = $user->is_available ?? true; 
-
         if ($isAvailable) {
             $statusText = 'AVAILABLE';
             $statusColor = 'bg-green-500';
@@ -21,9 +20,8 @@
     } 
     elseif ($viewerRole === 'Psychologist' && $user && $user->role !== 'Psychologist') {
         $consultationStatus = $user->consultation_status ?? 'none'; 
-
         switch ($consultationStatus) {
-            case 'pending': // On Request
+            case 'pending':
                 $statusText = 'ON REQUEST';
                 $statusColor = 'bg-yellow-500';
                 break;
@@ -31,7 +29,7 @@
                 $statusText = 'CANCELLED';
                 $statusColor = 'bg-red-500';
                 break;
-            case 'active': // On Chat
+            case 'active':
                 $statusText = 'ON CHAT';
                 $statusColor = 'bg-green-600';
                 break;
@@ -40,7 +38,6 @@
                 $statusColor = 'bg-blue-500';
                 break;
             default:
-                // Opsional: Jika tidak ada status aktif
                 $statusText = ''; 
                 $statusColor = 'hidden';
                 break;
@@ -63,7 +60,6 @@
              </div>
         @endif
         
-        {{-- TAMPILAN BADGE STATUS --}}
         <div class="{{ $statusColor }} absolute top-4 right-4 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-sm uppercase tracking-wider">
             {{ $statusText }}
         </div>
@@ -94,14 +90,26 @@
         @endif
 
         @if($user)
-            {{-- Tombol juga bisa disesuaikan, misal disable jika status Cancelled/Solved --}}
-            <a href="{{ route('consultation.rule', $user->id) }}" 
+            <a href="{{ ($viewerRole === 'Psychologist') ? route('chat.show', $user->id) : route('consultation.rule', $user->id) }}" 
             class="block w-full bg-custom-blue text-white py-2.5 rounded-xl mt-2 font-semibold hover:bg-blue-900 transition-colors shadow-md flex items-center justify-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                 </svg>
-                {{ (Auth::check() && Auth::user()->role === 'Psychologist') ? 'Balas Chat' : 'Chat Sekarang' }}
+                {{ ($viewerRole === 'Psychologist') ? 'Balas Chat' : 'Chat Sekarang' }}
             </a>
+
+            @if($viewerRole === 'Psychologist' && $consultationStatus === 'pending')
+                <form action="{{ route('chat.cancel', $user->id) }}" method="POST" class="mt-2" onsubmit="return confirm('Tolak permintaan konsultasi ini?');">
+                    @csrf
+                    <button type="submit" class="block w-full bg-white border border-red-500 text-red-500 py-2 rounded-xl font-semibold hover:bg-red-50 transition-colors text-sm shadow-sm flex items-center justify-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                        Tolak / Cancel
+                    </button>
+                </form>
+            @endif
+
         @else
              <button disabled class="block w-full bg-gray-300 text-white py-2.5 rounded-xl mt-2 font-semibold cursor-not-allowed flex items-center justify-center gap-2">
                 User Unavailable

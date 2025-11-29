@@ -9,50 +9,66 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Carbon\Carbon; 
 
 class ChatController extends Controller
 {
+    private function getConsultation($userId, $psychologistId)
+    {
+        return Consultation::where('user_id', $userId)
+            ->where('psychologist_id', $psychologistId)
+            ->latest()
+            ->first();
+    }
+
     public function index()
     {
         $currentUser = Auth::user();
 
         if ($currentUser->role === 'Psychologist') {
-            // ==========================================
-            // VIEW UNTUK PSIKOLOG (Melihat Daftar Pasien)
-            // ==========================================
-            
-            // Ambil daftar konsultasi milik psikolog ini
-            // Urutkan dari yang update terakhir (chat terbaru)
-            $consultations = Consultation::where('psychologist_id', $currentUser->id)
-                ->with('user')
-                ->orderBy('updated_at', 'desc')
-                ->get();
+            $clientIds = Consultation::where('psychologist_id', $currentUser->id)
+                ->pluck('user_id')
+                ->unique();
 
-            $users = $consultations->map(function ($consultation) {
-                $patient = $consultation->user;
-                $patient->consultation_status = $consultation->status; 
-                $patient->consultation_id = $consultation->id; 
+            $users = User::whereIn('id', $clientIds)->get()->map(function ($patient) use ($currentUser) {
+                $consultation = Consultation::where('user_id', $patient->id)
+                    ->where('psychologist_id', $currentUser->id)
+                    ->latest()
+                    ->first();
+
+                if ($consultation && $consultation->status === 'active' && $consultation->updated_at->diffInMinutes(Carbon::now()) > 10) {
+                    $consultation->update(['status' => 'solved']);
+                }
+
+                $patient->consultation_status = $consultation ? $consultation->status : 'none'; 
+                $patient->consultation_id = $consultation ? $consultation->id : null; 
                 
                 return $patient;
+            });
+
+            $users = $users->sortByDesc(function($user) {
+                return in_array($user->consultation_status, ['pending', 'active']) ? 1 : 0;
             });
 
             $pageTitle = 'Riwayat Chat Pasien';
             $emptyMessage = 'Belum ada pasien yang menghubungi Anda.';
 
         } else {
-            // ==========================================
-            // VIEW UNTUK USER BIASA (Melihat Daftar Psikolog)
-            // ==========================================
-            
             $users = User::where('role', 'Psychologist')
                 ->where('id', '!=', $currentUser->id)
                 ->get();
 
             $users->map(function ($psychologist) use ($currentUser) {
+                $psychologist->is_available = $psychologist->is_available ?? true; 
+
                 $myConsultation = Consultation::where('user_id', $currentUser->id)
                     ->where('psychologist_id', $psychologist->id)
                     ->latest() 
                     ->first();
+
+                if ($myConsultation && $myConsultation->status === 'active' && $myConsultation->updated_at->diffInMinutes(Carbon::now()) > 10) {
+                    $myConsultation->update(['status' => 'solved']);
+                }
 
                 $psychologist->consultation_status = $myConsultation ? $myConsultation->status : 'none';
 
@@ -68,22 +84,50 @@ class ChatController extends Controller
 
     public function show($userId)
     {
+        $currentUser = Auth::user();
         $receiver = User::findOrFail($userId);
-        $currentUserId = Auth::id();
+        
+        $patientId = $currentUser->role === 'User' ? $currentUser->id : $userId;
+        $psychologistId = $currentUser->role === 'Psychologist' ? $currentUser->id : $userId;
 
-        $messages = Message::where(function ($query) use ($currentUserId, $userId) {
-            $query->where('sender_id', $currentUserId)
+        $consultation = $this->getConsultation($patientId, $psychologistId);
+
+        if ($consultation && $consultation->status === 'active' && $consultation->updated_at->diffInMinutes(Carbon::now()) > 10) {
+            $consultation->update(['status' => 'solved']);
+        }
+
+        $messages = Message::where(function ($query) use ($currentUser, $userId) {
+            $query->where('sender_id', $currentUser->id)
                 ->where('receiver_id', $userId);
         })
-            ->orWhere(function ($query) use ($currentUserId, $userId) {
+            ->orWhere(function ($query) use ($currentUser, $userId) {
                 $query->where('sender_id', $userId)
-                    ->where('receiver_id', $currentUserId);
+                    ->where('receiver_id', $currentUser->id);
             })
             ->with(['sender', 'receiver'])
             ->orderBy('created_at', 'asc')
             ->get();
 
-        return view('chat.show', compact('receiver', 'messages'));
+        return view('chat.show', compact('receiver', 'messages', 'consultation'));
+    }
+
+    public function startSession($userId)
+    {
+        $sender = Auth::user();
+        
+        if ($sender->role !== 'User') abort(403);
+
+        $consultation = $this->getConsultation($sender->id, $userId);
+
+        if (!$consultation || in_array($consultation->status, ['solved', 'cancelled'])) {
+            Consultation::create([
+                'user_id' => $sender->id,
+                'psychologist_id' => $userId,
+                'status' => 'pending'
+            ]);
+        } 
+        
+        return redirect()->route('chat.show', $userId);
     }
 
     public function store(Request $request, $userId)
@@ -93,20 +137,29 @@ class ChatController extends Controller
         ]);
 
         $sender = Auth::user();
+        
+        $patientId = $sender->role === 'User' ? $sender->id : $userId;
+        $psychologistId = $sender->role === 'Psychologist' ? $sender->id : $userId;
+
+        $consultation = $this->getConsultation($patientId, $psychologistId);
 
         if ($sender->role === 'User') {
-            
-            $activeSession = Consultation::where('user_id', $sender->id)
-                ->where('psychologist_id', $userId)
-                ->whereIn('status', ['pending', 'active'])
-                ->exists();
-
-            if (!$activeSession) {
-                Consultation::create([
+            if (!$consultation || in_array($consultation->status, ['solved', 'cancelled'])) {
+                $consultation = Consultation::create([
                     'user_id' => $sender->id,
                     'psychologist_id' => $userId,
-                    'status' => 'pending'
+                    'status' => 'pending' 
                 ]);
+            } else {
+                $consultation->touch();
+            }
+        } 
+        elseif ($sender->role === 'Psychologist') {
+            if ($consultation) {
+                if ($consultation->status === 'pending') {
+                    $consultation->update(['status' => 'active']);
+                }
+                $consultation->touch();
             }
         }
         
@@ -115,18 +168,6 @@ class ChatController extends Controller
             'receiver_id' => $userId,
             'message' => $request->message,
         ]);
-
-        if ($sender->role === 'User' || $sender->role === 'Psychologist') {
-             $consultation = Consultation::where(function($q) use ($sender, $userId) {
-                 $q->where('user_id', $sender->id)->where('psychologist_id', $userId);
-             })->orWhere(function($q) use ($sender, $userId) {
-                 $q->where('user_id', $userId)->where('psychologist_id', $sender->id);
-             })->latest()->first();
-
-             if ($consultation) {
-                 $consultation->touch(); 
-             }
-        }
 
         $broadcastStatus = 'success';
         try {
@@ -140,6 +181,37 @@ class ChatController extends Controller
             'status' => 'Message Sent!',
             'broadcast_status' => $broadcastStatus,
             'message' => $message->load('sender'),
+            'consultation_status' => $consultation ? $consultation->status : 'none'
         ]);
+    }
+
+    public function cancelConsultation($userId)
+    {
+        $psychologist = Auth::user();
+        if ($psychologist->role !== 'Psychologist') abort(403);
+
+        $consultation = $this->getConsultation($userId, $psychologist->id);
+
+        if ($consultation && $consultation->status === 'pending') {
+            $consultation->update(['status' => 'cancelled']);
+            return back()->with('success', 'Permintaan konsultasi telah ditolak.');
+        }
+
+        return back()->with('error', 'Tidak dapat membatalkan sesi ini.');
+    }
+
+    public function solveConsultation($userId)
+    {
+        $psychologist = Auth::user();
+        if ($psychologist->role !== 'Psychologist') abort(403);
+
+        $consultation = $this->getConsultation($userId, $psychologist->id);
+
+        if ($consultation && in_array($consultation->status, ['active', 'pending'])) {
+            $consultation->update(['status' => 'solved']);
+            return back()->with('success', 'Sesi konsultasi selesai.');
+        }
+
+        return back()->with('error', 'Gagal mengakhiri sesi.');
     }
 }

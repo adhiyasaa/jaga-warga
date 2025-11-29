@@ -82,8 +82,10 @@ Route::get('/consultation/rule/{id}', function ($id) {
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/consultation/chat/{userId}', [ChatController::class, 'show'])->name('chat.show');
-
     Route::post('/consultation/chat/{userId}', [ChatController::class, 'store'])->name('chat.store');
+    Route::post('/consultation/start/{userId}', [ChatController::class, 'startSession'])->name('chat.start');
+    Route::post('/consultation/cancel/{userId}', [ChatController::class, 'cancelConsultation'])->name('chat.cancel');
+    Route::post('/consultation/solve/{userId}', [ChatController::class, 'solveConsultation'])->name('chat.solve');
 });
 
 // =============================
