@@ -88,6 +88,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/consultation/start/{userId}', [ChatController::class, 'startSession'])->name('chat.start');
     Route::post('/consultation/cancel/{userId}', [ChatController::class, 'cancelConsultation'])->name('chat.cancel');
     Route::post('/consultation/solve/{userId}', [ChatController::class, 'solveConsultation'])->name('chat.solve');
+
+    Route::get('/consultation/chat/{userId}/messages', [\App\Http\Controllers\ChatController::class, 'getMessages'])->name('chat.messages');
 });
 
 // =============================
