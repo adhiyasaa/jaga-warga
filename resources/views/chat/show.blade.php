@@ -179,20 +179,30 @@
                     this.$nextTick(() => this.scrollToBottom(true));
                     setTimeout(() => this.scrollToBottom(true), 100);
 
-                    if (typeof window.Echo !== 'undefined') {
-                        window.Echo.private('chat.' + currentUserId)
-                            .listen('MessageSent', (e) => {
-                                if (e.sender_id == this.receiverId) {
-                                    this.messages.push({
-                                        id: e.id,
-                                        message: e.message,
-                                        sender_id: e.sender_id,
-                                        created_at: e.created_at
-                                    });
-                                    this.$nextTick(() => this.scrollToBottom(false));
-                                }
-                            });
-                    }
+                    const checkEcho = setInterval(() => {
+                        if (typeof window.Echo !== 'undefined') {
+                            clearInterval(checkEcho);
+                            
+                            console.log('Echo siap! Mencoba subscribe ke: chat.' + this.currentUserId);
+
+                            window.Echo.private('chat.' + this.currentUserId)
+                                .listen('.MessageSent', (e) => {
+                                    console.log('Pesan masuk:', e);
+                                    if (e.sender_id == this.receiverId) {
+                                        this.messages.push({
+                                            id: e.id,
+                                            message: e.message,
+                                            sender_id: e.sender_id,
+                                            created_at: e.created_at
+                                        });
+                                        this.$nextTick(() => this.scrollToBottom(false));
+                                    }
+                                })
+                                .error((error) => {
+                                    console.error('Error subscription:', error);
+                                });
+                        }
+                    }, 500); 
                 },
 
                 sendMessage() {

@@ -80,6 +80,8 @@ Route::get('/consultation/rule/{id}', function ($id) {
     return view('consultation-rule', ['userId' => $id]);
 })->name('consultation.rule');
 
+
+
 Route::middleware(['auth'])->group(function () {
     Route::get('/consultation/chat/{userId}', [ChatController::class, 'show'])->name('chat.show');
     Route::post('/consultation/chat/{userId}', [ChatController::class, 'store'])->name('chat.store');
