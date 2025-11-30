@@ -28,8 +28,10 @@ class AdminInformationController extends Controller
         if ($request->hasFile('image')) {
             $file = $request->file('image');
             $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-            $path = Storage::disk('supabase')->putFileAs('info', $file, $filename);
-            $fullUrl = Storage::disk('supabase')->url($path);
+            
+            $path = Storage::disk('supabase_info')->putFileAs('', $file, $filename);
+            
+            $fullUrl = Storage::disk('supabase_info')->url($path);
             $validated['image_path'] = $fullUrl;
         }
 
@@ -51,20 +53,19 @@ class AdminInformationController extends Controller
 
         if ($request->hasFile('image')) {
             if ($information->image_path) {
-                $oldFilename = basename($information->image_path);
-                $oldPath = 'info/' . $oldFilename;
-
-                if (Storage::disk('supabase')->exists($oldPath)) {
-                    Storage::disk('supabase')->delete($oldPath);
+                $oldFilename = basename($information->image_path); 
+                
+                if (Storage::disk('supabase_info')->exists($oldFilename)) {
+                    Storage::disk('supabase_info')->delete($oldFilename);
                 }
             }
 
             $file = $request->file('image');
             $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
             
-            $path = Storage::disk('supabase')->putFileAs('info', $file, $filename);
+            $path = Storage::disk('supabase_info')->putFileAs('', $file, $filename);
             
-            $validated['image_path'] = Storage::disk('supabase')->url($path);
+            $validated['image_path'] = Storage::disk('supabase_info')->url($path);
         }
 
         $information->update($validated);
@@ -77,10 +78,9 @@ class AdminInformationController extends Controller
     {
         if ($information->image_path) {
             $filename = basename($information->image_path);
-            $path = 'info/' . $filename;
             
-            if (Storage::disk('supabase')->exists($path)) {
-                Storage::disk('supabase')->delete($path);
+            if (Storage::disk('supabase_info')->exists($filename)) {
+                Storage::disk('supabase_info')->delete($filename);
             }
         }
 

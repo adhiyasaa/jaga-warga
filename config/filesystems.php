@@ -52,7 +52,7 @@ return [
             'region' => env('AWS_DEFAULT_REGION'),
             'bucket' => env('AWS_BUCKET_POSTS'),
             'endpoint' => env('AWS_ENDPOINT'),
-            'use_path_style_endpoint' => true,  // <-- WAJIB TRUE
+            'use_path_style_endpoint' => true, 
             'visibility' => 'public',
             'throw' => true,
         ],
@@ -64,9 +64,6 @@ return [
             'key' => env('AWS_ACCESS_KEY_ID'),
             'secret' => env('AWS_SECRET_ACCESS_KEY'),
             'bucket' => env('AWS_BUCKET'),
-            // Tambahkan root, jika Anda ingin semua operasi Storage::disk('supabase') 
-            // selalu berada di sub-folder tertentu di dalam bucket (tapi ini tidak disarankan).
-            // 'root' => '/', // Biarkan kosong atau '/' jika Anda ingin upload ke root bucket.
             'url' => env('AWS_URL'),
             'endpoint' => env('AWS_ENDPOINT'),
             'region' => env('AWS_DEFAULT_REGION'),
@@ -78,7 +75,24 @@ return [
             ],
         ],
 
-    ], // <--- INI PENUTUP 'disks' YANG BENAR
+        'supabase_info' => [
+            'driver' => 's3',
+            'key' => env('AWS_ACCESS_KEY_ID'),
+            'secret' => env('AWS_SECRET_ACCESS_KEY'),
+            'bucket' => 'information',
+            'url' => env('AWS_URL'),
+            'endpoint' => env('AWS_ENDPOINT'),
+            'region' => env('AWS_DEFAULT_REGION'),
+            'url' => str_replace('/reports', '/information', env('AWS_URL')),
+            'use_path_style_endpoint' => true,
+            'visibility' => 'public',
+            'throw' => true,            
+            'http' => [
+                'verify' => false,
+            ],
+        ],
+
+    ],
 
     /*
     |--------------------------------------------------------------------------

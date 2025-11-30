@@ -36,7 +36,7 @@
                     </td>
                     <td class="py-3 px-4">
                         {{-- PERBAIKAN: Mengganti via.placeholder.com dengan placehold.co --}}
-                        <img src="{{ \Illuminate\Support\Facades\Storage::disk('supabase')->url($information->image_path) }}" 
+                        <img src="{{ $information->image_path }}" 
                              alt="Image" 
                              onerror="this.onerror=null; this.src='https://placehold.co/150?text=No+Image'"
                              class="w-16 h-10 object-cover rounded-md border">

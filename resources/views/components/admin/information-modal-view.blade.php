@@ -14,7 +14,7 @@
             <div>
                 <label class="text-sm text-gray-600">Uploaded Image</label>
                 {{-- PERBAIKAN: Gunakan Supabase URL + Fallback Placehold.co --}}
-                <img src="{{ \Illuminate\Support\Facades\Storage::disk('supabase')->url($information->image_path) }}" 
+                <img src="{{ $information->image_path }}" 
                      alt="Image" 
                      onerror="this.onerror=null; this.src='https://placehold.co/400x300?text=No+Image'"
                      class="w-full h-32 object-cover rounded-md mt-1 border">
