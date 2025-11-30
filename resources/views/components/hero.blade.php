@@ -1,5 +1,17 @@
-<section class="relative h-[940px] w-full bg-cover bg-center" style="background-image: url('https://muabtceunyjvfxfkclzs.supabase.co/storage/v1/object/public/images/hero.png')">
+<section class="relative h-[760px] w-full overflow-hidden bg-black">
+    <video 
+        autoplay 
+        loop 
+        muted 
+        playsinline
+        class="absolute top-1/2 left-1/2 min-w-full min-h-full object-cover
+               -translate-x-1/2 -translate-y-1/2 scale-[1.35]"
+    >
+        <source src="https://muabtceunyjvfxfkclzs.supabase.co/storage/v1/object/public/images/Permintaan_Video_Website_Jaga_Warga.mp4" type="video/mp4">
+    </video>
+
     <div class="absolute inset-0 bg-black bg-opacity-60"></div>
+
     <div class="relative z-10 h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" style="font-family: 'Agrandir'">
         <div class="flex h-full flex-col justify-center items-center text-center text-white">
             <h1 class="text-4xl md:text-5xl font-bold uppercase tracking-wider text-gray-100">
@@ -10,6 +22,7 @@
                 <span class="relative z-10">Make a Report</span>
             </a>
         </div>
+
         <div class="absolute bottom-8 left-4 sm:left-6 lg:left-8">
             <img src="https://muabtceunyjvfxfkclzs.supabase.co/storage/v1/object/public/images/logo.png" alt="Jaga Warga Logo" class="h-10 md:h-12 w-auto">
         </div>
