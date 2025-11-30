@@ -49,11 +49,20 @@
 
     <div class="h-64 w-full overflow-hidden bg-gray-100 relative group">
         @if($user)
-            <img 
-                src="https://ui-avatars.com/api/?name={{ urlencode($user->name) }}&background=random&color=fff&size=512&font-size=0.33" 
-                alt="{{ $user->name }}"
-                class="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
-            >
+            {{-- LOGIKA GAMBAR: Cek avatar_url dulu --}}
+            @if($user->avatar_url)
+                <img 
+                    src="{{ $user->avatar_url }}" 
+                    alt="{{ $user->name }}"
+                    class="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
+                >
+            @else
+                <img 
+                    src="https://ui-avatars.com/api/?name={{ urlencode($user->name) }}&background=random&color=fff&size=512&font-size=0.33" 
+                    alt="{{ $user->name }}"
+                    class="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
+                >
+            @endif
         @else
              <div class="w-full h-full bg-gray-200 flex items-center justify-center text-gray-400">
                 No Image

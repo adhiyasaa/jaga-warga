@@ -33,9 +33,12 @@
 
 <body class="bg-gray-100 font-sans antialiased">
     @php
-        // Ambil status awal dari controller untuk inisialisasi state JS
         $status = isset($consultation) ? $consultation->status : 'pending';
         $isPsychologist = auth()->user()->role === 'Psychologist';
+        
+        // Siapkan URL Avatar untuk dikirim ke JS
+        $myAvatar = auth()->user()->avatar_url ?? 'https://ui-avatars.com/api/?name='.urlencode(auth()->user()->name).'&background=random&color=fff';
+        $otherAvatar = $receiver->avatar_url ?? 'https://ui-avatars.com/api/?name='.urlencode($receiver->name).'&background=random&color=fff';
     @endphp
 
     <div class="h-dvh flex flex-col w-full relative">
@@ -46,7 +49,7 @@
         <main class="flex-1 flex flex-col min-h-0 relative bg-gray-50">
             <div class="w-full max-w-7xl mx-auto h-full flex flex-col px-0 sm:px-4 lg:px-6 py-2 sm:py-3">
                 
-                {{-- Header Navigasi --}}
+                {{-- Tombol Kembali --}}
                 <div class="flex-none mb-2 px-4 sm:px-0 flex items-center justify-between">
                     <h2 class="font-semibold text-lg text-gray-800 leading-tight hidden sm:block">{{ __('Ruang Konsultasi') }}</h2>
                     <a href="{{ route('consultation') }}" class="text-sm text-custom-blue hover:text-blue-900 flex items-center gap-1 font-medium py-1 px-2 rounded hover:bg-blue-50 transition">
@@ -54,30 +57,35 @@
                     </a>
                 </div>
 
-                {{-- CHAT CONTAINER --}}
+                {{-- Container Chat App --}}
                 <div class="flex-1 bg-white shadow-xl sm:rounded-2xl overflow-hidden border border-gray-200 flex flex-col relative min-h-0"
-                     x-data="chatApp({{ auth()->id() }}, {{ $receiver->id }}, {{ Js::from($messages) }}, '{{ $status }}')">
+                     x-data="chatApp(
+                        {{ auth()->id() }}, 
+                        {{ $receiver->id }}, 
+                        {{ Js::from($messages) }}, 
+                        '{{ $status }}',
+                        '{{ $myAvatar }}',
+                        '{{ $otherAvatar }}'
+                     )">
 
-                    {{-- 1. HEADER CHAT --}}
+                    {{-- Header Chat (Info Lawan Bicara) --}}
                     <div class="flex-none px-4 py-3 border-b border-gray-100 bg-white flex justify-between items-center shadow-sm z-20">
                         <div class="flex items-center gap-3">
                             <div class="relative">
-                                <div class="w-10 h-10 rounded-full bg-custom-blue flex items-center justify-center text-white text-lg font-bold ring-2 ring-white shadow-sm">
-                                    {{ substr($receiver->name, 0, 1) }}
-                                </div>
-                                {{-- Indikator Hijau (Hanya muncul jika input aktif) --}}
+                                <img class="w-10 h-10 rounded-full object-cover border border-gray-200 shadow-sm" 
+                                     src="{{ $otherAvatar }}" 
+                                     alt="{{ $receiver->name }}">
+                                
                                 <template x-if="!isInputDisabled">
                                     <span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-white rounded-full shadow-sm"></span>
                                 </template>
                             </div>
                             <div>
                                 <h3 class="text-base font-bold text-gray-800 leading-tight">{{ $receiver->name }}</h3>
-                                {{-- Status Teks --}}
                                 <p class="text-xs text-gray-500" x-text="isInputDisabled ? 'Sesi Berakhir' : 'Online'"></p>
                             </div>
                         </div>
 
-                        {{-- TOMBOL END SESSION (HANYA PSIKOLOG) --}}
                         @if($isPsychologist)
                             <template x-if="!isInputDisabled">
                                 <form action="{{ route('chat.solve', $receiver->id) }}" method="POST" onsubmit="return confirm('Akhiri sesi percakapan ini?');">
@@ -91,10 +99,9 @@
                         @endif
                     </div>
 
-                    {{-- 2. CHAT BODY --}}
+                    {{-- Area Pesan (Scrollable) --}}
                     <div id="chat-container" class="flex-1 overflow-y-auto p-4 space-y-4 bg-[#F0F2F5] w-full custom-scroll" x-ref="chatContainer">
                         
-                        {{-- Notifikasi Status di Tengah --}}
                         <div class="flex justify-center my-4 opacity-80">
                             <template x-if="isInputDisabled">
                                 <span class="text-xs text-gray-500 bg-gray-100 border border-gray-200 px-3 py-1 rounded-full shadow-sm">
@@ -110,15 +117,20 @@
 
                         {{-- Loop Pesan --}}
                         <template x-for="msg in messages" :key="msg.id">
-                            <div class="flex w-full" :class="msg.sender_id === currentUserId ? 'justify-end' : 'justify-start'">
-                                <div class="flex max-w-[85%] sm:max-w-[70%] gap-2"
-                                     :class="msg.sender_id === currentUserId ? 'flex-row-reverse' : 'flex-row'">
+                            <div class="flex w-full gap-2 items-end" 
+                                 :class="msg.sender_id === currentUserId ? 'flex-row-reverse' : 'flex-row'">
+
+                                {{-- Bubble Content --}}
+                                <div class="flex max-w-[75%] sm:max-w-[70%]"
+                                     :class="msg.sender_id === currentUserId ? 'justify-end' : 'justify-start'">
                                     
                                     <div class="relative px-3 py-2 rounded-2xl shadow-sm text-sm leading-relaxed break-words"
                                          :class="msg.sender_id === currentUserId 
-                                            ? 'bg-custom-blue text-white rounded-tr-none' 
-                                            : 'bg-white text-gray-800 rounded-tl-none border border-gray-100'">
+                                            ? 'bg-custom-blue text-white rounded-br-none' 
+                                            : 'bg-white text-gray-800 rounded-bl-none border border-gray-100'">
+                                        
                                         <p x-text="msg.message" class="whitespace-pre-wrap"></p>
+                                        
                                         <div class="text-[10px] mt-1 text-right opacity-80"
                                              :class="msg.sender_id === currentUserId ? 'text-blue-100' : 'text-gray-400'">
                                             <span x-text="formatTime(msg.created_at)"></span>
@@ -128,15 +140,12 @@
                             </div>
                         </template>
 
-                        {{-- Loading Indicator --}}
-                        <div x-show="isSending" class="flex justify-end" style="display: none;">
+                        <div x-show="isSending" class="flex justify-end pr-10" style="display: none;">
                             <div class="bg-blue-50 text-custom-blue text-[10px] px-3 py-1 rounded-full animate-pulse">Mengirim...</div>
                         </div>
                     </div>
-
-                    {{-- 3. INPUT AREA / FOOTER --}}
                     
-                    {{-- A. Jika Aktif: Tampilkan Form Input --}}
+                    {{-- Input Form --}}
                     <template x-if="!isInputDisabled">
                         <div class="flex-none p-3 bg-white border-t border-gray-200 z-20">
                             <form @submit.prevent="sendMessage" class="flex items-end gap-2 bg-gray-50 p-2 rounded-3xl border border-gray-300 focus-within:border-custom-blue focus-within:ring-1 focus-within:ring-custom-blue transition-all shadow-sm">
@@ -157,7 +166,6 @@
                         </div>
                     </template>
 
-                    {{-- B. Jika Mati: Tampilkan Info Sesi Berakhir & Link Ulangi (User Only) --}}
                     <template x-if="isInputDisabled">
                         <div class="flex-none p-4 bg-gray-50 border-t border-gray-200 z-20 text-center">
                             <p class="text-sm text-gray-500 font-medium flex items-center justify-center gap-2 mb-2">
@@ -181,29 +189,26 @@
         <x-footer/>
     </div>
 
-    {{-- LOGIKA JAVASCRIPT --}}
     <script>
-        function chatApp(currentUserId, receiverId, initialMessages, initialStatus) {
+        function chatApp(currentUserId, receiverId, initialMessages, initialStatus, myAvatarUrl, otherAvatarUrl) {
             return {
                 currentUserId: currentUserId,
                 receiverId: receiverId,
                 messages: initialMessages,
                 newMessage: '',
                 isSending: false,
-                status: initialStatus, // Menyimpan status terkini (pending/active/solved)
+                status: initialStatus, 
                 isInputDisabled: ['solved', 'cancelled'].includes(initialStatus),
                 pollingTimeout: null,
+                myAvatar: myAvatarUrl,
+                otherAvatar: otherAvatarUrl,
 
                 init() {
                     this.$nextTick(() => this.scrollToBottom(true));
-                    
-                    // Mulai polling pertama kali
                     this.pollMessages();
                 },
 
-                // Fungsi Polling Rekursif (Lebih aman dari setInterval)
                 pollMessages() {
-                    // Jika sesi sudah mati, stop polling agar hemat kuota server
                     if (this.isInputDisabled) return;
 
                     axios.get(`/consultation/chat/${this.receiverId}/messages`)
@@ -211,13 +216,11 @@
                             const newMessages = response.data.messages;
                             const newStatus = response.data.status;
 
-                            // 1. Cek Pesan Baru
                             if (newMessages.length > this.messages.length) {
                                 this.messages = newMessages;
                                 this.$nextTick(() => this.scrollToBottom(false));
                             }
 
-                            // 2. Cek Status Berubah (Misal jadi solved karena idle 10 menit)
                             if (this.status !== newStatus) {
                                 this.status = newStatus;
                                 this.isInputDisabled = ['solved', 'cancelled'].includes(newStatus);
@@ -227,7 +230,6 @@
                             console.error("Polling error (Retrying...):", err);
                         })
                         .finally(() => {
-                            // Panggil lagi setelah request selesai (delay 3 detik)
                             if (!this.isInputDisabled) {
                                 this.pollingTimeout = setTimeout(() => {
                                     this.pollMessages();
@@ -242,10 +244,8 @@
                     const messageToSend = this.newMessage; 
                     this.newMessage = ''; 
 
-                    // Kirim pesan ke server
                     window.axios.post('/consultation/chat/' + this.receiverId, { message: messageToSend })
                     .then(response => {
-                        // Response dari server membawa status terbaru juga
                         const data = response.data.message;
                         this.messages.push({
                             id: data.id,
@@ -256,7 +256,7 @@
                         this.$nextTick(() => this.scrollToBottom(false));
                     })
                     .catch(error => {
-                        this.newMessage = messageToSend; // Kembalikan teks jika gagal
+                        this.newMessage = messageToSend; 
                         alert('Gagal mengirim pesan.');
                     })
                     .finally(() => {

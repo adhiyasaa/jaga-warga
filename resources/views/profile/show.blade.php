@@ -20,7 +20,7 @@
     </script>
 </head>
 
-<body class="bg-gray-100"> {{-- Ganti ke bg-gray-100 agar kartu putih terlihat --}}
+<body class="bg-gray-100">
 
     <x-navbar />
 
@@ -32,24 +32,50 @@
                     My Profile
                 </h2>
                 
-                <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
-                    <div class="max-w-xl">
-                        <header>
-                            <h2 class="text-lg font-medium text-gray-900">
-                                {{ $user->name }}
-                            </h2>
+                {{-- SECTION 1: HEADER PROFIL (FOTO & INFO UTAMA) --}}
+                <div class="p-6 bg-white shadow sm:rounded-lg flex flex-col sm:flex-row items-center sm:items-start gap-6">
+                    
+                    {{-- Foto Profil --}}
+                    <div class="shrink-0">
+                        @if($user->avatar_url)
+                            <img class="h-32 w-32 rounded-full object-cover border-4 border-gray-100 shadow-sm" 
+                                 src="{{ $user->avatar_url }}" 
+                                 alt="{{ $user->name }}">
+                        @else
+                            <img class="h-32 w-32 rounded-full object-cover border-4 border-gray-100 shadow-sm" 
+                                 src="https://ui-avatars.com/api/?name={{ urlencode($user->name) }}&background=random&color=fff&size=256" 
+                                 alt="{{ $user->name }}">
+                        @endif
+                    </div>
 
-                            <p class="mt-1 text-sm text-gray-600">
-                                {{ $user->email }}
-                            </p>
-                            <p class="mt-1 text-sm font-medium text-custom-blue capitalize">
-                                {{-- Menampilkan role --}}
+                    {{-- Info User --}}
+                    <div class="flex-1 text-center sm:text-left">
+                        <h2 class="text-2xl font-bold text-gray-900">{{ $user->name }}</h2>
+                        <p class="text-gray-600">{{ $user->email }}</p>
+                        
+                        {{-- Badge / Label --}}
+                        <div class="mt-3 flex flex-wrap gap-2 justify-center sm:justify-start">
+                            {{-- Badge Role --}}
+                            <span class="px-3 py-1 bg-blue-100 text-custom-blue rounded-full text-sm font-medium">
                                 Role: {{ $user->role }}
-                            </p>
-                        </header>
+                            </span>
+
+                            {{-- Badge Khusus Psikolog --}}
+                            @if($user->role === 'Psychologist')
+                                <span class="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm font-medium">
+                                    Exp: {{ $user->experience ?? '-' }}
+                                </span>
+                                
+                                {{-- Indikator Status --}}
+                                <span class="px-3 py-1 {{ $user->is_available ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' }} rounded-full text-sm font-medium">
+                                    {{ $user->is_available ? 'Available' : 'Not Available' }}
+                                </span>
+                            @endif
+                        </div>
                     </div>
                 </div>
 
+                {{-- SECTION 2: PROFILE SETTINGS --}}
                 <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
                     <div class="max-w-xl">
                         <h2 class="text-lg font-medium text-gray-900 mb-4">
@@ -61,7 +87,7 @@
                                 Edit Profile Information
                             </a>
                             <p class="mt-1 text-sm text-gray-600">
-                                Perbarui informasi nama dan email Anda.
+                                Perbarui informasi nama, foto profil, dan email Anda.
                             </p>
                             
                             <hr class="my-4">
@@ -76,6 +102,7 @@
                     </div>
                 </div>
 
+                {{-- SECTION 3: SECURITY --}}
                 <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
                     <div class="max-w-xl">
                         <h2 class="text-lg font-medium text-gray-900 mb-4">
