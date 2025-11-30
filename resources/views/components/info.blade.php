@@ -14,7 +14,7 @@
         <a href="{{ $info->url }}" target="_blank" rel="noopener noreferrer">
             <div class="relative w-96 h-40 flex-shrink-0 rounded-3xl overflow-hidden shadow-lg transition">
                 
-                <img src="{{ asset('storage/' . $info->image_path) }}" 
+                <img src="{{ $info->image_path }}" 
                     alt="{{ $info->title }}" 
                     class="absolute inset-0 w-full h-full object-cover">
                 

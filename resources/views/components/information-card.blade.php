@@ -5,7 +5,7 @@
     
     <div class="relative rounded-2xl overflow-hidden bg-white">
         <img class="w-full h-48 object-cover" 
-            src="{{ asset('storage/' . $information->image_path) }}" 
+            src="{{ $information->image_path }}" 
             alt="{{ $information->title }}">
         
         <div class="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-black/50 to-transparent"></div>
