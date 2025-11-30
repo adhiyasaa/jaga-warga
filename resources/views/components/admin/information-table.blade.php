@@ -35,9 +35,11 @@
                         </a>
                     </td>
                     <td class="py-3 px-4">
-                        <img src="{{ asset('storage/' . $information->image_path) }}" 
+                        {{-- PERBAIKAN: Mengganti via.placeholder.com dengan placehold.co --}}
+                        <img src="{{ \Illuminate\Support\Facades\Storage::disk('supabase')->url($information->image_path) }}" 
                              alt="Image" 
-                             class="w-16 h-10 object-cover rounded-md">
+                             onerror="this.onerror=null; this.src='https://placehold.co/150?text=No+Image'"
+                             class="w-16 h-10 object-cover rounded-md border">
                     </td>
                     <td class="py-3 px-4">{{ $information->created_at->format('d/m/y') }}</td>
                     <td class="py-3 px-4 relative">
@@ -74,15 +76,10 @@
 <script>
     function toggleDropdown(event, id) {
         event.stopPropagation();
-        // Tutup semua dropdown lain
-        document.querySelectorAll('[id^="dropdown-"]').forEach(el => {
-            if (el.id !== id) el.classList.add('hidden');
-        });
-        // Buka/tutup dropdown yang diklik
+        document.querySelectorAll('[id^="dropdown-"]').forEach(el => el.classList.add('hidden'));
         document.getElementById(id).classList.toggle('hidden');
     }
 
-    // Tutup dropdown jika klik di luar
     window.addEventListener('click', () => {
         document.querySelectorAll('[id^="dropdown-"]').forEach(el => el.classList.add('hidden'));
     });
@@ -90,10 +87,7 @@
     function openModal(id) {
         const modal = document.getElementById(id);
         if (!modal) return;
-
         modal.classList.remove('hidden');
-
-        // Transisi fade-in
         setTimeout(() => {
             modal.classList.remove('opacity-0', 'scale-95');
             modal.classList.add('opacity-100', 'scale-100');
@@ -103,20 +97,14 @@
     function closeModal(id) {
         const modal = document.getElementById(id);
         if (!modal) return;
-
-        // Transisi fade-out
         modal.classList.remove('opacity-100', 'scale-100');
         modal.classList.add('opacity-0', 'scale-95');
-
-        // Sembunyikan setelah transisi selesai
         setTimeout(() => {
             modal.classList.add('hidden');
         }, 150);
     }
 
-    // Tutup modal jika klik background
     document.addEventListener('click', (e) => {
-        // ID modal harus sesuai dengan yang kita buat
         document.querySelectorAll(
             '[id^="addInformationModal"],' +
             '[id^="editInformationModal-"],' +

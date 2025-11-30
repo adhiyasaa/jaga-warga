@@ -41,7 +41,7 @@ return [
             'url' => env('AWS_URL'),
             'endpoint' => env('AWS_ENDPOINT'),
             'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
-            'throw' => false,
+            'throw' => true,
         ],
 
         // DISK KHUSUS POSTINGAN (Bucket: posts)
@@ -54,7 +54,7 @@ return [
             'endpoint' => env('AWS_ENDPOINT'),
             'use_path_style_endpoint' => true,  // <-- WAJIB TRUE
             'visibility' => 'public',
-            'throw' => false,
+            'throw' => true,
         ],
 
 
@@ -72,7 +72,10 @@ return [
             'region' => env('AWS_DEFAULT_REGION'),
             'use_path_style_endpoint' => true,
             'visibility' => 'public',
-            'throw' => false,
+            'throw' => true,
+            'http' => [
+                'verify' => false,
+            ],
         ],
 
     ], // <--- INI PENUTUP 'disks' YANG BENAR

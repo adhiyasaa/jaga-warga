@@ -76,7 +76,7 @@ class ReportController extends Controller
                 $file = $request->file('evidence_file');
                 $filename = time() . '_' . preg_replace('/\s+/', '_', $file->getClientOriginalName());
 
-                $evidencePath = Storage::disk('supabase')->putFileAs('/', $file, $filename);
+                $evidencePath = Storage::disk('supabase')->putFileAs('', $file, $filename);
 
                 if (!$evidencePath) {
                     throw new \Exception('File upload failed or returned empty path.');
